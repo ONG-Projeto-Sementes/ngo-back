@@ -1,0 +1,27 @@
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: ngo-mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --quiet  # Suprime logs informativos, mantendo erros
+
+  backend:
+    build: .
+    container_name: ngo-backend
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/ngo
+      - NODE_ENV=production
+      - PORT=8080
+      - SECRET=${SECRET}
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:

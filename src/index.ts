@@ -10,7 +10,6 @@ import router from './router/index.js';
 import cookieParser from 'cookie-parser';
 import mongoose, { mongo } from 'mongoose';
 
-
 const app = express();
 
 app.use(cors({
@@ -27,7 +26,6 @@ const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}/`);
 });
-
 
 const MONGO_URL = process.env.MONGO_URL as string;
 

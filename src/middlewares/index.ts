@@ -44,7 +44,6 @@ export const isAuthenticated = async (
       return;
     }
 
-    // Garanta que o campo sessionToken seja retornado, pois no schema ele está com select: false
     const existingUser = await getUserBySessionToken(sessionToken).select(
       '+authentication.sessionToken'
     );
