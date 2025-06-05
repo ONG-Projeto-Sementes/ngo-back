@@ -2,24 +2,39 @@
   "name": "ngo-back",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
+    "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^5.0.2",
-    "@types/node": "^22.15.29",
+    "body-parser": "^1.20.3",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "mongodb": "^6.17.0",
-    "typescript": "^5.8.3"
+    "mongoose": "^8.15.1"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "@types/body-parser": "^1.19.5",
+    "@types/compression": "^1.7.5",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/lodash": "^4.17.17",
+    "@types/lodash-es": "^4.17.12",
+    "@types/mongoose": "^5.11.96",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   }
 }

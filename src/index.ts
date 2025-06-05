@@ -1,12 +1,38 @@
-import express, { Request, Response } from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import http from 'http';
+import cors from 'cors';
+import express from 'express';
+import bodyParser from 'body-parser';
+import compression from 'compression';
+import router from './router/index.js';
+import cookieParser from 'cookie-parser';
+import mongoose, { mongo } from 'mongoose';
+
 
 const app = express();
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-app.get('/healthcheck', (req: Request, res: Response) => {
-    res.status(200).json({ status: 'OK', message: 'API is running' });
-});
+app.use(cors({
+    credentials: true
+}));
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
-});
+app.use(compression());
+app.use(cookieParser());
+app.use(bodyParser.json());
+
+const server = http.createServer(app);
+
+server.listen(8080, () => {
+    console.log('Server is running on http://localhost:8080/');
+})
+
+const MONGO_URL = process.env.MONGO_URL as string;
+
+mongoose.Promise = Promise;
+mongoose.connect(MONGO_URL);
+mongoose.connection.on('error', (error: Error) =>
+    console.error('MongoDB connection error:', error)
+);
+
+app.use('/', router())
