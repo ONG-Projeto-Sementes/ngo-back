@@ -1,77 +1,54 @@
-import express from 'express';
-
 import { random, authentication } from '../helpers/index.js';
 import { createUsers, getUserByEmail } from '../db/users.js';
-
-export const login = async (
-    req: express.Request,
-    res: express.Response
-): Promise<void> => {
+export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
             res.sendStatus(400);
             return;
         }
-
-        const user = await getUserByEmail(email).select(
-            '+authentication.salt +authentication.password +authentication.sessionToken'
-        );
-        if (
-            !user ||
+        const user = await getUserByEmail(email).select('+authentication.salt +authentication.password +authentication.sessionToken');
+        if (!user ||
             !user.authentication?.salt ||
-            !user.authentication?.password
-        ) {
+            !user.authentication?.password) {
             res.sendStatus(400);
             return;
         }
-
         const expectedHash = authentication(user.authentication.salt, password);
         if (user.authentication.password !== expectedHash) {
             res.sendStatus(403);
             return;
         }
-
         const salt = random();
-        user.authentication.sessionToken = authentication(
-            salt,
-            user._id.toString()
-        );
+        user.authentication.sessionToken = authentication(salt, user._id.toString());
         await user.save();
-
         res.cookie('sessionToken', user.authentication.sessionToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
         });
-
         res.status(200).json(user);
         return;
-    } catch (error) {
+    }
+    catch (error) {
         console.log(error);
         res.sendStatus(400);
         return;
     }
 };
-
-export const register = async (
-    req: express.Request,
-    res: express.Response
-): Promise<void> => {
+export const register = async (req, res) => {
     try {
         const { email, password, username } = req.body;
         if (!email || !password || !username) {
             res.sendStatus(400);
             return;
         }
-
         const existingUser = await getUserByEmail(email);
         if (existingUser) {
             res.sendStatus(400);
             return;
         }
-
         const salt = random();
         const newUser = await createUsers({
             email,
@@ -81,10 +58,10 @@ export const register = async (
                 password: authentication(salt, password),
             },
         });
-
         res.status(200).json(newUser);
         return;
-    } catch (error) {
+    }
+    catch (error) {
         console.log(error);
         res.sendStatus(400);
         return;

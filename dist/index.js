@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
 import http from 'http';
 import cors from 'cors';
 import express from 'express';
@@ -8,33 +7,20 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import router from './router/index.js';
 import cookieParser from 'cookie-parser';
-import mongoose, { mongo } from 'mongoose';
-
-
+import mongoose from 'mongoose';
 const app = express();
-
 app.use(cors({
     credentials: true
 }));
-
 app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
-
 const server = http.createServer(app);
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}/`);
+server.listen(8080, () => {
+    console.log('Server is running on http://localhost:8080/');
 });
-
-
-const MONGO_URL = process.env.MONGO_URL as string;
-
+const MONGO_URL = process.env.MONGO_URL;
 mongoose.Promise = Promise;
 mongoose.connect(MONGO_URL);
-mongoose.connection.on('error', (error: Error) =>
-    console.error('MongoDB connection error:', error)
-);
-
-app.use('/', router())
+mongoose.connection.on('error', (error) => console.error('MongoDB connection error:', error));
+app.use('/', router());
