@@ -92,3 +92,13 @@ export const isAuthenticatedHandler = (req: express.Request, res: express.Respon
     email: user.email,
   });
 };
+
+export const logout = (req: express.Request, res: express.Response) => {
+  res.clearCookie('sessionToken', {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  res.sendStatus(200);
+  return;
+};
