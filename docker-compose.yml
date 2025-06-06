@@ -7,21 +7,28 @@ services:
       - 27017:27017
     volumes:
       - mongo-data:/data/db
-    command: mongod --quiet  # Suprime logs informativos, mantendo erros
+    command: mongod --quiet
 
   backend:
-    build: .
-    container_name: ngo-backend
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: dev
+    container_name: ngo-backend-dev
     restart: unless-stopped
     ports:
       - 8080:8080
+      - 9229:9229
     environment:
-      - MONGO_URL=mongodb://mongo:27017/ngo
-      - NODE_ENV=production
-      - PORT=8080
-      - SECRET=${SECRET}
+      MONGO_URL: mongodb://mongo:27017/ngo
+      NODE_ENV: development
+      PORT: 8080
+      SECRET: ${SECRET}
     depends_on:
       - mongo
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
 
 volumes:
   mongo-data:

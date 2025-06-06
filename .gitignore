@@ -18,3 +18,5 @@ Environment variables (ignore all .env files except .env.example)
 
 .idea
 
+dist
+

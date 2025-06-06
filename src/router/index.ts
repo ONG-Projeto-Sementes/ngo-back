@@ -1,14 +1,15 @@
-import express from "express";
+import express from 'express';
 
-import authentication from "./authentication.js";
-import users from "./users.js";
+import users from './users.js';
+import health from './health.js';
+import authentication from './authentication.js';
 
 const router = express.Router();
 
 export default (): express.Router => {
+  authentication(router);
+  health(router);
+  users(router);
 
-    authentication(router);
-    users(router);
-
-    return router;
-}
+  return router;
+};
