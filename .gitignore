@@ -15,3 +15,6 @@ Environment variables (ignore all .env files except .env.example)
 
 .env*
 !.env.example
+
+.idea
+

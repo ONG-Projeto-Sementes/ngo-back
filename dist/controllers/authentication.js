@@ -8,9 +8,7 @@ export const login = async (req, res) => {
             return;
         }
         const user = await getUserByEmail(email).select('+authentication.salt +authentication.password +authentication.sessionToken');
-        if (!user ||
-            !user.authentication?.salt ||
-            !user.authentication?.password) {
+        if (!user || !user.authentication?.salt || !user.authentication?.password) {
             res.sendStatus(400);
             return;
         }
@@ -26,7 +24,7 @@ export const login = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
+            maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         });
         res.status(200).json(user);
         return;
@@ -66,4 +64,25 @@ export const register = async (req, res) => {
         res.sendStatus(400);
         return;
     }
+};
+export const isAuthenticatedHandler = (req, res) => {
+    const user = req.identity;
+    if (!user) {
+        res.sendStatus(403);
+        return;
+    }
+    res.status(200).json({
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+    });
+};
+export const logout = (req, res) => {
+    res.clearCookie('sessionToken', {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+    });
+    res.sendStatus(200);
+    return;
 };

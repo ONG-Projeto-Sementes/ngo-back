@@ -28,7 +28,6 @@ export const isAuthenticated = async (req, res, next) => {
             res.sendStatus(403);
             return;
         }
-        // Garanta que o campo sessionToken seja retornado, pois no schema ele está com select: false
         const existingUser = await getUserBySessionToken(sessionToken).select('+authentication.sessionToken');
         if (!existingUser) {
             res.sendStatus(403);
