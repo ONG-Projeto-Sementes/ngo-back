@@ -1,0 +1,44 @@
+import { ObjectId, PopulateOptions, RootFilterQuery } from "mongoose";
+
+export type Select =
+  | string
+  | string[]
+  | Record<string, string | number | boolean | object>;
+export type Populate = PopulateOptions | (string | PopulateOptions)[];
+
+export type Mutable<T extends object> = Omit<
+  T,
+  "_id" | "createdAt" | "updatedAt"
+>;
+
+export interface IService<M extends object> {
+  list({
+    filters,
+    populate,
+    select,
+  }: {
+    filters?: RootFilterQuery<M>;
+    populate?: Populate;
+    select?: Select;
+  }): Promise<M[]>;
+
+  insert(data: Mutable<M>): Promise<M>;
+
+  findById(id: ObjectId): Promise<M | null>;
+
+  findOne({
+    filters,
+    populate,
+    select,
+  }: {
+    filters?: RootFilterQuery<M>;
+    populate?: Populate;
+    select?: Select;
+  }): Promise<M | null>;
+
+  updateOne(id: string | ObjectId, data: Partial<M>): Promise<M | null>;
+
+  count({ filters }: { filters?: RootFilterQuery<M> }): Promise<number>;
+
+  deleteOne({ filters }: { filters?: RootFilterQuery<M> }): Promise<M | null>;
+}
