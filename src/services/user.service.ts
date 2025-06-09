@@ -28,11 +28,11 @@ export class UserService extends BaseService<IUser> {
       throw new BadRequestError("invalid_credentials", "Credenciais inválidas");
     }
 
-    const salt = random();
-    user.authentication.sessionToken = authentication(
-      salt,
-      user._id.toString(),
-    );
+    user.authentication.sessionToken = random();
+    await this.updateOne(user._id, {
+      authentication: user.authentication,
+    });
+
     return user;
   }
 

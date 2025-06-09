@@ -1,24 +1,24 @@
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import { CustomError } from "../errors/custom.error.js";
 import { logger } from "../logging/logger.js";
 
-export const ErrorHandler = async (
+export const ErrorHandler: ErrorRequestHandler = async (
   err: unknown,
-  req: express.Request,
+  _req: express.Request,
   res: express.Response,
-  next: express.NextFunction,
+  _next: express.NextFunction,
 ) => {
   if (err instanceof CustomError) {
     const { name, code, message } = err;
     logger.error(`An error occurred: ${message}`);
-    return res.status(code).send({
+    res.status(code).send({
       name,
       message,
     });
   } else {
-    return res.status(500).send({
-      name: 'internal_server_error',
-      message: 'Internal server error',
+    res.status(500).send({
+      name: "internal_server_error",
+      message: "Internal server error",
     });
   }
 };
