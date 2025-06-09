@@ -1,65 +1,47 @@
-import express from 'express';
-import { deleteUserById, getUserById, getUsers } from '../db/users.js';
+import Joi from "joi";
+import express from "express";
 
-export const getAllUsers = async (
-    req: express.Request,
-    res: express.Response
-): Promise<void> => {
-    try {
-        const users = await getUsers();
-        res.status(200).json(users);
-        return;
-    } catch (error) {
-        console.log(error);
-        res.sendStatus(400);
-        return;
+import { UserService } from "../services/user.service.js";
+import { AsyncHandler } from "../middlewares/AsyncHandler.js";
+import { NotFoundError } from "../errors/not-found.error.js";
+import { BodyHandler } from "../middlewares/BodyHandler.js";
+
+const userService = new UserService();
+
+export const getAllUsers = AsyncHandler(
+  async (req: express.Request, res: express.Response) => {
+    res.status(200).json(await userService.list({}));
+  },
+);
+
+export const deleteUser = AsyncHandler(
+  async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    const deletedUser = await userService.deleteOne({ filters: { _id: id } });
+
+    if (!deletedUser) {
+      throw new NotFoundError("user_not_found", "Usuário não encontrado");
     }
-};
 
-export const deleteUser = async (
-    req: express.Request,
-    res: express.Response
-): Promise<void> => {
-    try {
-        const { id } = req.params;
-        const deletedUser = await deleteUserById(id);
+    res.status(200).json(deletedUser);
+  },
+);
 
-        res.status(200).json(deletedUser);
-        return;
-    } catch (error) {
-        console.log(error);
-        res.sendStatus(400);
-        return;
+export const updateUser = [
+  BodyHandler(
+    Joi.object({
+      username: Joi.string().min(3).max(30).required(),
+    }),
+  ),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    const { username } = req.body;
+
+    const updatedUser = await userService.updateOne(id, { username });
+    if (!updatedUser) {
+      throw new NotFoundError("user_not_found", "Usuário não encontrado");
     }
-};
 
-export const updateUser = async (
-    req: express.Request,
-    res: express.Response
-): Promise<void> => {
-    try {
-        const { id } = req.params;
-        const { username } = req.body;
-
-        if (!username) {
-            res.sendStatus(400);
-            return;
-        }
-
-        const user = await getUserById(id);
-        if (!user) {
-            res.sendStatus(404);
-            return;
-        }
-
-        user.username = username;
-        await user.save();
-
-        res.status(200).json(user);
-        return;
-    } catch (error) {
-        console.log(error);
-        res.sendStatus(400);
-        return;
-    }
-};
+    res.status(200).json(updatedUser);
+  }),
+];

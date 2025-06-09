@@ -1,89 +1,78 @@
-import express from 'express';
+import Joi from "joi";
+import express from "express";
 
-import { random, authentication } from '../helpers/index.js';
-import { createUsers, getUserByEmail } from '../db/users.js';
+import { UserService } from "../services/user.service.js";
+import { BodyHandler } from "../middlewares/BodyHandler.js";
+import { AsyncHandler } from "../middlewares/AsyncHandler.js";
+import { BadRequestError } from "../errors/bad-request.error.js";
+import { UnauthorizedError } from "../errors/unauthorized.error.js";
 
-export const login = async (req: express.Request, res: express.Response): Promise<void> => {
-  try {
+const userService = new UserService();
+
+export const login = [
+  BodyHandler(
+    Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string().required(),
+    }),
+  ),
+  AsyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password) {
-      res.sendStatus(400);
-      return;
-    }
 
-    const user = await getUserByEmail(email).select(
-      '+authentication.salt +authentication.password +authentication.sessionToken'
-    );
-    if (!user || !user.authentication?.salt || !user.authentication?.password) {
-      res.sendStatus(400);
-      return;
-    }
-
-    const expectedHash = authentication(user.authentication.salt, password);
-    if (user.authentication.password !== expectedHash) {
-      res.sendStatus(403);
-      return;
-    }
-
-    const salt = random();
-    user.authentication.sessionToken = authentication(salt, user._id.toString());
-    await user.save();
-
-    res.cookie('sessionToken', user.authentication.sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    });
-
-    res.status(200).json(user);
-    return;
-  } catch (error) {
-    console.log(error);
-    res.sendStatus(400);
-    return;
-  }
-};
-
-export const register = async (req: express.Request, res: express.Response): Promise<void> => {
-  try {
-    const { email, password, username } = req.body;
-    if (!email || !password || !username) {
-      res.sendStatus(400);
-      return;
-    }
-
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-      res.sendStatus(400);
-      return;
-    }
-
-    const salt = random();
-    const newUser = await createUsers({
+    const authenticatedUser = await userService.authenticateUser(
       email,
-      username,
-      authentication: {
-        salt,
-        password: authentication(salt, password),
-      },
+      password,
+    );
+    if (!authenticatedUser) {
+      throw new UnauthorizedError(
+        "invalid_credentials",
+        "Credenciais inválidas",
+      );
+    }
+
+    res.cookie("sessionToken", authenticatedUser.authentication.sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
+
+    res.status(200).json(authenticatedUser);
+  }),
+];
+
+export const register = [
+  BodyHandler(
+    Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string().required(),
+      username: Joi.string().min(3).max(30).required(),
+    }),
+  ),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { email, password, username } = req.body;
+
+    const newUser = await userService.registerUser({
+      email,
+      password,
+      username,
+    });
+    if (!newUser) {
+      throw new BadRequestError("User already exists", "user_already_exists");
+    }
 
     res.status(200).json(newUser);
-    return;
-  } catch (error) {
-    console.log(error);
-    res.sendStatus(400);
-    return;
-  }
-};
+  }),
+];
 
-export const isAuthenticatedHandler = (req: express.Request, res: express.Response): void => {
+export const isAuthenticatedHandler = (
+  req: express.Request,
+  res: express.Response,
+): void => {
   const user = req.identity;
 
   if (!user) {
-    res.sendStatus(403);
-    return;
+    throw new UnauthorizedError("not_authenticated", "Usuário não autenticado");
   }
 
   res.status(200).json({
@@ -94,10 +83,10 @@ export const isAuthenticatedHandler = (req: express.Request, res: express.Respon
 };
 
 export const logout = (req: express.Request, res: express.Response) => {
-  res.clearCookie('sessionToken', {
+  res.clearCookie("sessionToken", {
     httpOnly: true,
-    sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
   });
   res.sendStatus(200);
   return;

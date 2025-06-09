@@ -8,7 +8,8 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import router from './router/index.js';
 import cookieParser from 'cookie-parser';
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
+import { ErrorHandler } from "./middlewares/ErrorHandler.js";
 
 const app = express();
 
@@ -39,3 +40,4 @@ mongoose.connection.on('error', (error: Error) =>
 );
 
 app.use('/', router())
+app.use(ErrorHandler);

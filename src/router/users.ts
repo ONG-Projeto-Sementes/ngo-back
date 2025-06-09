@@ -1,7 +1,8 @@
 import express from 'express';
 
-import { isAuthenticated, isOwner } from '../middlewares/index.js';
 import { deleteUser, getAllUsers, updateUser } from '../controllers/users.js';
+import { isAuthenticated } from "../middlewares/isAuthenticated.js";
+import { isOwner } from "../middlewares/isOwner.js";
 
 export default (router: express.Router) => {
 
