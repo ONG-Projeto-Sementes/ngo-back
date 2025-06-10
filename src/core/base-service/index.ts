@@ -77,7 +77,7 @@ export class BaseService<M extends object> implements IService<M> {
   }
 
   deleteOne({ filters }: { filters?: RootFilterQuery<M> }): Promise<M | null> {
-    return this.model.findOneAndDelete(filters).exec();
+    return this.model.findOneAndDelete(filters || {}).exec();
   }
 
   async aggregate(pipeline: any[]): Promise<any[]> {
