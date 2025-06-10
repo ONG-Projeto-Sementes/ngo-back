@@ -16,7 +16,7 @@ export class BaseService<M extends object> implements IService<M> {
     select?: Select;
   }): Promise<M[]> {
     return this.model
-      .find(filters || {})
+      .find(filters ? { deleted: false, ...filters } : { deleted: false })
       .populate(populate || [])
       .select(select || {})
       .exec();
@@ -37,7 +37,7 @@ export class BaseService<M extends object> implements IService<M> {
     select?: Select;
   }): Promise<M | null> {
     return this.model
-      .findOne(filters || {})
+      .findOne(filters ? { deleted: false, ...filters } : { deleted: false })
       .populate(populate || [])
       .select(select || {})
       .exec();
@@ -52,10 +52,80 @@ export class BaseService<M extends object> implements IService<M> {
   }
 
   count({ filters }: { filters?: RootFilterQuery<M> }): Promise<number> {
-    return this.model.countDocuments(filters || {}).exec();
+    return this.model
+      .countDocuments(filters ? { deleted: false, ...filters } : {})
+      .exec();
+  }
+
+  disableOne(id: string | ObjectId): Promise<M | null> {
+    return this.model
+      .findByIdAndUpdate(id, { deleted: true }, { new: true })
+      .exec();
+  }
+
+  async disableMany({
+    filters,
+  }: {
+    filters?: RootFilterQuery<M>;
+  }): Promise<M[] | null> {
+    return this.model
+      .updateMany(filters ? { deleted: false, ...filters } : {}, {
+        deleted: true,
+      })
+      .exec()
+      .then(() => this.list({ filters }));
   }
 
   deleteOne({ filters }: { filters?: RootFilterQuery<M> }): Promise<M | null> {
     return this.model.findOneAndDelete(filters || {}).exec();
+  }
+
+  async aggregate(pipeline: any[]): Promise<any[]> {
+    return this.model.aggregate(pipeline).exec();
+  }
+
+  async paginate({
+    filters,
+    page = 1,
+    limit = 10,
+  }: {
+    filters?: RootFilterQuery<M>;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    data: M[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  }> {
+    const res = await this.model
+      .aggregate([
+        {
+          $match: {
+            ...(filters ? { deleted: false, ...filters } : { deleted: false }),
+          },
+        },
+        {
+          $sort: { _id: 1 },
+        },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }],
+            data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          },
+        },
+      ])
+      .exec();
+
+    const total = res[0]?.metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+    return {
+      data: res[0]?.data || [],
+      total,
+      totalPages,
+      currentPage: page,
+      limit,
+    };
   }
 }

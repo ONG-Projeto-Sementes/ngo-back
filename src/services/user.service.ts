@@ -1,5 +1,5 @@
 import { BaseService } from "../core/base-service/index.js";
-import { IUser, UserModel } from "../db/users.js";
+import { IUser, UserModel } from "../models/user.js";
 import { random, authentication } from "../helpers/index.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
