@@ -5,7 +5,7 @@ import {
   login,
   isAuthenticatedHandler,
   logout,
-} from "../controllers/authentication.js";
+} from "../controllers/authentication.controller.js";
 import { isAuthenticated } from "../middlewares/isAuthenticated.js";
 
 export default (router: express.Router) => {

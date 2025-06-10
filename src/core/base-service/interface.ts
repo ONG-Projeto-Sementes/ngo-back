@@ -40,5 +40,30 @@ export interface IService<M extends object> {
 
   count({ filters }: { filters?: RootFilterQuery<M> }): Promise<number>;
 
+  disableOne(id: string | ObjectId): Promise<M | null>;
+
+  disableMany({ filters }: { filters?: RootFilterQuery<M> }): Promise<M[] | null>;
+
   deleteOne({ filters }: { filters?: RootFilterQuery<M> }): Promise<M | null>;
+
+  aggregate<T = any>(
+    pipeline: any[],
+    options?: { allowDiskUse?: boolean; collation?: object },
+  ): Promise<T[]>;
+
+  paginate({
+    filters,
+    page,
+    limit,
+  }: {
+    filters: RootFilterQuery<M>;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    data: M[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  }>;
 }
