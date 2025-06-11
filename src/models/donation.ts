@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 import { BaseInterface } from "../types/base-interface.js";
 
 export interface IDonation extends BaseInterface {
-  description: string;
+  description?: string;
   name: string;
 }
 
 const DonationSchema = new mongoose.Schema<IDonation>({
   name: { type: String, required: true },
-  description: { type: String, required: true },
+  description: { type: String },
   deleted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

@@ -39,6 +39,6 @@ export const createBeneficiaryByFamilyId = [
     }),
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
-    res.status(201).json(await beneficiaryService.insert({ ...req.body, familyId: req.params.familyId }));
+    res.status(201).json(await beneficiaryService.insert({ ...req.body, family: req.params.familyId }));
   }),
 ];

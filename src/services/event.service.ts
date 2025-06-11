@@ -24,9 +24,9 @@ export class EventService extends BaseService<IEvent> {
     const events = await this.aggregate([
       {
         $match: {
-          ...(filters.familyId ? { familyId: filters.familyId } : {}),
-          ...(filters.volunteerIds
-            ? { volunteerIds: { $in: filters.volunteerIds } }
+          ...(filters.familyId ? { family: filters.familyId } : {}),
+          ...(filters.volunteerIds?.length
+            ? { volunteers: { $in: filters.volunteerIds } }
             : {}),
           ...(filters.startDate
             ? { startDate: { $gte: filters.startDate } }
@@ -39,44 +39,51 @@ export class EventService extends BaseService<IEvent> {
         $sort: { startDate: 1 },
       },
       {
-        $lookup: {
-          from: "families",
-          localField: "familyId",
-          foreignField: "_id",
-          as: "family",
-        },
-      },
-      {
-        $unwind: {
-          path: "$family",
-          preserveNullAndEmptyArrays: true,
-        }
-      },
-      {
-        $lookup: {
-          from: "donations",
-          localField: "donationId",
-          foreignField: "_id",
-          as: "donation",
-        },
-      },
-      {
-        $unwind: {
-          path: "$donation",
-        }
-      },
-      {
-        $lookup: {
-          from: "volunteers",
-          localField: "volunteerIds",
-          foreignField: "_id",
-          as: "volunteers",
-        },
-      },
-      {
         $facet: {
           metadata: [{ $count: "total" }],
-          data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+          data: [
+            {
+              $skip: (page - 1) * limit
+            },
+            {
+              $limit: limit
+            },
+            {
+              $lookup: {
+                from: "families",
+                localField: "family",
+                foreignField: "_id",
+                as: "family",
+              },
+            },
+            {
+              $unwind: {
+                path: "$family",
+                preserveNullAndEmptyArrays: true,
+              }
+            },
+            {
+              $lookup: {
+                from: "donations",
+                localField: "donation",
+                foreignField: "_id",
+                as: "donation",
+              },
+            },
+            {
+              $unwind: {
+                path: "$donation",
+              }
+            },
+            {
+              $lookup: {
+                from: "volunteers",
+                localField: "volunteers",
+                foreignField: "_id",
+                as: "volunteers",
+              },
+            },
+          ],
         },
       },
     ]);
@@ -98,10 +105,10 @@ export class EventService extends BaseService<IEvent> {
       throw new NotFoundError("event_not_found", "Evento não encontrado");
     }
 
-    event.volunteerIds = [
-      ...new Set([...(event.volunteerIds || []), ...(volunteerIds || [])]),
-    ];
-    return this.updateOne(eventId, { volunteerIds: event.volunteerIds });
+    event.volunteers = [
+      ...new Set([...(event.volunteers || []), ...(volunteerIds || [])]),
+    ] as string[];
+    return this.updateOne(eventId, { volunteers: event.volunteers });
   }
 }
 
