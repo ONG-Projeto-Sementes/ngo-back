@@ -6,6 +6,7 @@ import { isAuthenticated } from "../middlewares/isAuthenticated.js";
 import volunteerRoute from "./volunteer.route.js";
 import familyRoute from "./family.route.js";
 import eventRoute from "./event.route.js";
+import donationRoute from "./donation.route.js";
 
 const router = express.Router();
 
@@ -18,6 +19,7 @@ export default (): express.Router => {
   users(router);
   eventRoute(router);
   familyRoute(router);
+  donationRoute(router);
   volunteerRoute(router);
 
   return router;

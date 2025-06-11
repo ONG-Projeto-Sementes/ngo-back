@@ -21,21 +21,21 @@ export const paginateEvents = [
     }),
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
-    const { page, limit } = req.query as { page: string; limit: string };
+    const { page, limit } = (req.query || {}) as { page: string; limit: string };
     res.status(200).json(
       await eventService.paginate({
         filters: {
-          familyId: req.query.familyId as string,
-          volunteerIds: (req.query.volunteerIds as string)?.split(",") || [],
-          startDate: req.query.startDate
+          familyId: req.query?.familyId as string,
+          volunteerIds: (req.query?.volunteerIds as string)?.split(",") || [],
+          startDate: req.query?.startDate
             ? new Date(req.query.startDate as string)
             : undefined,
-          endDate: req.query.endDate
+          endDate: req.query?.endDate
             ? new Date(req.query.endDate as string)
             : undefined,
         },
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
       }),
     );
   }),
@@ -44,11 +44,11 @@ export const paginateEvents = [
 export const createEvent = [
   BodyHandler(
     Joi.object({
-      donationId: Joi.string().required(),
-      volunteerIds: Joi.array().items(Joi.string()).required(),
+      donation: Joi.string().required(),
+      volunteers: Joi.array().items(Joi.string()).required(),
       deliveryDate: Joi.date().required(),
       observations: Joi.string().optional(),
-      familyId: Joi.string().required(),
+      family: Joi.string().required(),
       imageUrl: Joi.string().uri().optional(),
     }),
   ),
