@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-
 dotenv.config();
 
 import cors from "cors";
@@ -9,14 +8,25 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 
 import router from "./router/index.js";
-import {connection} from "./core/connection.js";
-import {ErrorHandler} from "./middlewares/ErrorHandler.js";
+import { connection } from "./core/connection.js";
+import { ErrorHandler } from "./middlewares/ErrorHandler.js";
 import * as process from "node:process";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
 const allowedOrigins = process.env.CORS_ORIGIN?.split(",") || [];
+
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 app.use(
     cors({
