@@ -21,7 +21,10 @@ export const paginateEvents = [
     }),
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
-    const { page, limit } = (req.query || {}) as { page: string; limit: string };
+    const { page, limit } = (req.query || {}) as {
+      page: string;
+      limit: string;
+    };
     res.status(200).json(
       await eventService.paginate({
         filters: {
@@ -54,5 +57,23 @@ export const createEvent = [
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
     res.status(201).json(await eventService.insert(req.body));
+  }),
+];
+
+export const updateEvent = [
+  BodyHandler(
+    Joi.object({
+      volunteerIds: Joi.array().items(Joi.string()).optional(),
+      donation: Joi.string().optional(),
+      deliveryDate: Joi.date().optional(),
+      observations: Joi.string().optional(),
+      family: Joi.string().optional(),
+      imageUrl: Joi.string().uri().optional(),
+    }),
+  ),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+
+    res.status(200).json(await eventService.updateOne(id, req.body));
   }),
 ];
