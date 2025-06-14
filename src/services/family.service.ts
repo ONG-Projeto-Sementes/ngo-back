@@ -3,9 +3,7 @@ import { IFamily, FamilyModel } from "../models/family.js";
 import { BeneficiaryService } from "./beneficiary.service.js";
 
 export class FamilyService extends BaseService<IFamily> {
-  constructor(
-    private beneficiaryService: BeneficiaryService = beneficiaryService,
-  ) {
+  constructor(private beneficiaryService: BeneficiaryService) {
     super(FamilyModel);
   }
 
@@ -27,4 +25,5 @@ export class FamilyService extends BaseService<IFamily> {
   }
 }
 
-export default new FamilyService();
+const beneficiaryService = new BeneficiaryService();
+export default new FamilyService(beneficiaryService);
