@@ -19,6 +19,7 @@ export const createVolunteer = [
       name: Joi.string().required(),
       cpf: Joi.string().optional(),
       contact: Joi.string().optional(),
+      birthDate: Joi.date().optional(),
     }),
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {

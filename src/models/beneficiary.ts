@@ -14,7 +14,7 @@ export interface IBeneficiary extends BaseInterface {
 const BeneficiarySchema = new mongoose.Schema<IBeneficiary>({
   name: { type: String, required: true },
   cpf: { type: String, unique: true },
-  genre: { type: String, enum: ["M", "F"] },
+  genre: { type: String, enum: ["M", "F", "O"] },
   degreeOfKinship: { type: String },
   family: {
     type: mongoose.Schema.Types.ObjectId,

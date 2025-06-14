@@ -35,10 +35,57 @@ export const createBeneficiaryByFamilyId = [
     Joi.object({
       name: Joi.string().required(),
       birthDate: Joi.date().required(),
+      degreeOfKinship: Joi.string().optional(),
+      genre: Joi.string().valid("M", "F", "O").optional(),
       cpf: Joi.string().optional(),
     }),
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
-    res.status(201).json(await beneficiaryService.insert({ ...req.body, family: req.params.familyId }));
+    res.status(201).json(
+      await beneficiaryService.insert({
+        ...req.body,
+        family: req.params.id,
+      }),
+    );
   }),
 ];
+
+export const getBeneficiariesByFamilyId = AsyncHandler(
+  async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    res
+      .status(200)
+      .json(await beneficiaryService.list({ filters: { family: id } }));
+  },
+);
+
+export const updateFamily = [
+  BodyHandler(
+    Joi.object({
+      name: Joi.string().required(),
+      city: Joi.string().required(),
+      address: Joi.string().optional(),
+      neighborhood: Joi.string().required(),
+      contact: Joi.string().optional(),
+    }),
+  ),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    res.status(200).json(await familyService.updateOne(id, req.body));
+  }),
+];
+
+export const deleteFamily = AsyncHandler(
+  async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    await familyService.deleteOneById(id);
+    res.status(204).send();
+  },
+);
+
+export const getFamilyById = AsyncHandler(
+  async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    res.status(200).json(await familyService.findById(id));
+  },
+);
