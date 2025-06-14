@@ -11,27 +11,12 @@ import { ErrorHandler } from "./middlewares/ErrorHandler.js";
 import * as process from "node:process";
 const app = express();
 const PORT = process.env.PORT || 8000;
-const allowedOrigins = process.env.CORS_ORIGIN?.split(",") || [];
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(200);
-    }
-    next();
-});
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
     credentials: true,
+    origin: [
+        "http://localhost:5173",
+        "https://ngo-front-production.up.railway.app/"
+    ]
 }));
 app.use(compression());
 app.use(cookieParser());

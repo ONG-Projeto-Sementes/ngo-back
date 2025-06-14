@@ -1,6 +1,5 @@
 import { BaseService } from "../core/base-service/index.js";
 import { IEvent, EventModel } from "../models/event.js";
-import { NotFoundError } from "../errors/not-found.error.js";
 
 export class EventService extends BaseService<IEvent> {
   constructor() {
@@ -43,10 +42,10 @@ export class EventService extends BaseService<IEvent> {
           metadata: [{ $count: "total" }],
           data: [
             {
-              $skip: (page - 1) * limit
+              $skip: (page - 1) * limit,
             },
             {
-              $limit: limit
+              $limit: limit,
             },
             {
               $lookup: {
@@ -60,7 +59,7 @@ export class EventService extends BaseService<IEvent> {
               $unwind: {
                 path: "$family",
                 preserveNullAndEmptyArrays: true,
-              }
+              },
             },
             {
               $lookup: {
@@ -73,7 +72,7 @@ export class EventService extends BaseService<IEvent> {
             {
               $unwind: {
                 path: "$donation",
-              }
+              },
             },
             {
               $lookup: {
@@ -97,18 +96,6 @@ export class EventService extends BaseService<IEvent> {
       currentPage: page,
       limit,
     };
-  }
-
-  async associateVolunteersByEventId(eventId: string, volunteerIds: string[]) {
-    const event = await this.findById(eventId);
-    if (!event) {
-      throw new NotFoundError("event_not_found", "Evento não encontrado");
-    }
-
-    event.volunteers = [
-      ...new Set([...(event.volunteers || []), ...(volunteerIds || [])]),
-    ] as string[];
-    return this.updateOne(eventId, { volunteers: event.volunteers });
   }
 }
 
