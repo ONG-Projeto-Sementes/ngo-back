@@ -1,4 +1,11 @@
-import { ObjectId, PopulateOptions, RootFilterQuery } from "mongoose";
+import {
+  ObjectId,
+  PopulateOptions,
+  RootFilterQuery,
+  UpdateQuery,
+  UpdateWithAggregationPipeline,
+  UpdateWriteOpResult,
+} from "mongoose";
 
 export type Select =
   | string
@@ -42,9 +49,21 @@ export interface IService<M extends object> {
 
   disableOne(id: string | ObjectId): Promise<M | null>;
 
-  disableMany({ filters }: { filters?: RootFilterQuery<M> }): Promise<M[] | null>;
+  disableMany({
+    filters,
+  }: {
+    filters?: RootFilterQuery<M>;
+  }): Promise<M[] | null>;
 
   deleteOne({ filters }: { filters?: RootFilterQuery<M> }): Promise<M | null>;
+
+  updateMany({
+    filters,
+    data,
+  }: {
+    filters?: RootFilterQuery<M>;
+    data: UpdateQuery<M> | UpdateWithAggregationPipeline;
+  }): Promise<UpdateWriteOpResult>;
 
   aggregate<T = any>(
     pipeline: any[],

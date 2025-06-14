@@ -77,3 +77,12 @@ export const updateEvent = [
     res.status(200).json(await eventService.updateOne(id, req.body));
   }),
 ];
+
+export const deleteEvent = [
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+
+    await eventService.deleteOne({ filters: { _id: id } });
+    res.status(204).send();
+  }),
+];
