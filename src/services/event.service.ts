@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import { randomUUID } from "node:crypto";
 
 import { BaseService } from "../core/base-service/index.js";
@@ -27,7 +27,7 @@ export class EventService extends BaseService<IEvent> {
         key: imagePath,
         data: image.buffer,
       });
-      data.imageUrl = imagePath;
+      data.imageUrl = `https://ong-sementes.s3.sa-east-1.amazonaws.com/${imagePath}`;
     }
 
     return (await super.updateOne(event._id, data)) as IEvent;
@@ -65,7 +65,7 @@ export class EventService extends BaseService<IEvent> {
         data: image.buffer,
       });
 
-      data.imageUrl = imagePath;
+      data.imageUrl = `https://ong-sementes.s3.sa-east-1.amazonaws.com/${imagePath}`;
     }
 
     return super.updateOne(id, data);
@@ -79,6 +79,7 @@ export class EventService extends BaseService<IEvent> {
     filters: {
       familyId?: string;
       volunteerIds?: string[];
+      donationId?: string;
       startDate?: Date;
       endDate?: Date;
     };
@@ -88,9 +89,20 @@ export class EventService extends BaseService<IEvent> {
     const events = await this.aggregate([
       {
         $match: {
-          ...(filters.familyId ? { family: filters.familyId } : {}),
+          ...(filters.familyId
+            ? { family: new mongoose.Types.ObjectId(filters.familyId) }
+            : {}),
+          ...(filters.donationId
+            ? { donation: new mongoose.Types.ObjectId(filters.donationId) }
+            : {}),
           ...(filters.volunteerIds?.length
-            ? { volunteers: { $in: filters.volunteerIds } }
+            ? {
+                volunteers: {
+                  $in: filters.volunteerIds.map(
+                    (id) => new mongoose.Types.ObjectId(id),
+                  ),
+                },
+              }
             : {}),
           ...(filters.startDate
             ? { startDate: { $gte: filters.startDate } }
@@ -137,6 +149,7 @@ export class EventService extends BaseService<IEvent> {
             {
               $unwind: {
                 path: "$donation",
+                preserveNullAndEmptyArrays: true,
               },
             },
             {

@@ -16,6 +16,7 @@ export const paginateEvents = [
       limit: Joi.number().integer().min(1).max(100).default(10),
 
       familyId: Joi.string().optional(),
+      donationId: Joi.string().optional(),
       volunteerIds: Joi.array().items(Joi.string()).optional(),
       startDate: Joi.date().optional(),
       endDate: Joi.date().optional(),
@@ -30,6 +31,7 @@ export const paginateEvents = [
       await eventService.paginate({
         filters: {
           familyId: req.query?.familyId as string,
+          donationId: req.query?.donationId as string,
           volunteerIds: (req.query?.volunteerIds as string)?.split(",") || [],
           startDate: req.query?.startDate
             ? new Date(req.query.startDate as string)
