@@ -56,7 +56,18 @@ export class BaseService<M extends object> implements IService<M> {
   }
 
   updateOne(id: string | ObjectId, data: Partial<M>): Promise<M | null> {
-    return this.model.findByIdAndUpdate(id, data, { new: true }).exec();
+    return this.model
+      .findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            ...data,
+            updatedAt: new Date(),
+          },
+        },
+        { new: true },
+      )
+      .exec();
   }
 
   updateMany({
@@ -67,7 +78,12 @@ export class BaseService<M extends object> implements IService<M> {
     data: UpdateQuery<M> | UpdateWithAggregationPipeline;
   }): Promise<UpdateWriteOpResult> {
     return this.model
-      .updateMany(filters ? { deleted: false, ...filters } : {}, data)
+      .updateMany(filters ? { deleted: false, ...filters } : {}, {
+        $set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      })
       .exec();
   }
 

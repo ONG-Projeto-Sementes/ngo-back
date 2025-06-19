@@ -5,6 +5,7 @@ import { EventService } from "../services/event.service.js";
 import { QueryHandler } from "../middlewares/QueryHandler.js";
 import { AsyncHandler } from "../middlewares/AsyncHandler.js";
 import { BodyHandler } from "../middlewares/BodyHandler.js";
+import { FileHandler } from "../middlewares/FileHandler.js";
 
 const eventService = new EventService();
 
@@ -45,6 +46,7 @@ export const paginateEvents = [
 ];
 
 export const createEvent = [
+  FileHandler([{ name: "image", maxCount: 1 }]),
   BodyHandler(
     Joi.object({
       donation: Joi.string().required(),
@@ -56,11 +58,19 @@ export const createEvent = [
     }),
   ),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
-    res.status(201).json(await eventService.insert(req.body));
+    res
+      .status(201)
+      .json(
+        await eventService.insertOneWithImage(
+          req.body,
+          (req.files as { image: Express.Multer.File[] })?.image?.[0],
+        ),
+      );
   }),
 ];
 
 export const updateEvent = [
+  FileHandler([{ name: "image", maxCount: 1 }]),
   BodyHandler(
     Joi.object({
       volunteerIds: Joi.array().items(Joi.string()).optional(),
@@ -74,7 +84,15 @@ export const updateEvent = [
   AsyncHandler(async (req: express.Request, res: express.Response) => {
     const { id } = req.params;
 
-    res.status(200).json(await eventService.updateOne(id, req.body));
+    res
+      .status(200)
+      .json(
+        await eventService.updateOneWithImage(
+          id,
+          req.body,
+          (req.files as { image: Express.Multer.File[] })?.image?.[0],
+        ),
+      );
   }),
 ];
 
