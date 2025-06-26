@@ -57,6 +57,9 @@ export const createVolunteer = [
         ),
       );
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 =======
 >>>>>>> origin/main
@@ -73,6 +76,7 @@ export const updateVolunteer = [
       birthDate: Joi.date().optional(),
     }),
   ),
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   AsyncHandler(async (req, res) => {
@@ -101,6 +105,8 @@ export const deleteVolunteer = [
 =======
 =======
 >>>>>>> origin/main
+=======
+>>>>>>> origin/main
   AsyncHandler(async (req: express.Request, res: express.Response) => {
     const { id } = req.params;
 
@@ -114,6 +120,9 @@ export const deleteVolunteer = [
         ),
       );
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 =======
 >>>>>>> origin/main

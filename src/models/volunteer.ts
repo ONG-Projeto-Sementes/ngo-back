@@ -22,11 +22,14 @@ const VolunteerSchema = new mongoose.Schema<IVolunteer>({
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 VolunteerSchema.index(
   { cpf: 1 },
   { unique: true, partialFilterExpression: { deleted: false } },
 );
 
+=======
+>>>>>>> origin/main
 =======
 >>>>>>> origin/main
 =======

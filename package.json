@@ -16,7 +16,11 @@
   "dependencies": {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "@aws-sdk/client-s3": "^3.837.0",
+=======
+    "@aws-sdk/client-s3": "^3.832.0",
+>>>>>>> origin/main
 =======
     "@aws-sdk/client-s3": "^3.832.0",
 >>>>>>> origin/main
