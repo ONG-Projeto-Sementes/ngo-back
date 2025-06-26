@@ -6,7 +6,10 @@ import { fileApi } from "../apis/file.api.js";
 import { ObjectId } from "mongoose";
 import { NotFoundError } from "../errors/not-found.error.js";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { BadRequestError } from "../errors/bad-request.error.js";
+=======
+>>>>>>> origin/main
 =======
 >>>>>>> origin/main
 
@@ -19,6 +22,7 @@ export class VolunteerService extends BaseService<IVolunteer> {
     data: Mutable<IVolunteer>,
     image?: Express.Multer.File,
   ): Promise<IVolunteer> {
+<<<<<<< HEAD
 <<<<<<< HEAD
     if (data.cpf) {
       const exists = await VolunteerModel.findOne({ cpf: data.cpf, deleted: false });
@@ -47,6 +51,8 @@ export class VolunteerService extends BaseService<IVolunteer> {
 
     return volunteer;
 =======
+=======
+>>>>>>> origin/main
     const event = await super.insert(data);
 
     if (image) {
@@ -62,6 +68,9 @@ export class VolunteerService extends BaseService<IVolunteer> {
     }
 
     return (await super.updateOne(event._id, data)) as IVolunteer;
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
   }
 
@@ -69,6 +78,7 @@ export class VolunteerService extends BaseService<IVolunteer> {
     id: string | ObjectId,
     data: Partial<IVolunteer>,
     image?: Express.Multer.File,
+<<<<<<< HEAD
 <<<<<<< HEAD
   ): Promise<IVolunteer> {
     const volunteer = await VolunteerModel.findById(id);
@@ -103,6 +113,8 @@ export class VolunteerService extends BaseService<IVolunteer> {
     await volunteer.save();
     return volunteer;
 =======
+=======
+>>>>>>> origin/main
   ): Promise<IVolunteer | null> {
     const event = await super.findById(id);
 
@@ -135,6 +147,9 @@ export class VolunteerService extends BaseService<IVolunteer> {
     }
 
     return super.updateOne(id, data);
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
   }
 }

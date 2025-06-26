@@ -56,6 +56,9 @@ export const createVolunteer = [
           (req.files as { image: Express.Multer.File[] })?.image?.[0],
         ),
       );
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
   }),
 ];
@@ -70,6 +73,7 @@ export const updateVolunteer = [
       birthDate: Joi.date().optional(),
     }),
   ),
+<<<<<<< HEAD
 <<<<<<< HEAD
   AsyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -95,6 +99,8 @@ export const deleteVolunteer = [
     await volunteerService.updateOne(id, { deleted: true });
     res.status(204).send();
 =======
+=======
+>>>>>>> origin/main
   AsyncHandler(async (req: express.Request, res: express.Response) => {
     const { id } = req.params;
 
@@ -107,6 +113,9 @@ export const deleteVolunteer = [
           (req.files as { image: Express.Multer.File[] })?.image?.[0],
         ),
       );
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
   }),
 ];
