@@ -1,4 +1,12 @@
-import { Model, ObjectId, PopulateOptions, RootFilterQuery } from "mongoose";
+import {
+  Model,
+  ObjectId,
+  UpdateQuery,
+  PopulateOptions,
+  RootFilterQuery,
+  UpdateWriteOpResult,
+  UpdateWithAggregationPipeline,
+} from "mongoose";
 import { IService, Mutable, Select } from "./interface.js";
 
 export class BaseService<M extends object> implements IService<M> {
@@ -48,7 +56,35 @@ export class BaseService<M extends object> implements IService<M> {
   }
 
   updateOne(id: string | ObjectId, data: Partial<M>): Promise<M | null> {
-    return this.model.findByIdAndUpdate(id, data, { new: true }).exec();
+    return this.model
+      .findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            ...data,
+            updatedAt: new Date(),
+          },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+
+  updateMany({
+    filters,
+    data,
+  }: {
+    filters?: RootFilterQuery<M>;
+    data: UpdateQuery<M> | UpdateWithAggregationPipeline;
+  }): Promise<UpdateWriteOpResult> {
+    return this.model
+      .updateMany(filters ? { deleted: false, ...filters } : {}, {
+        $set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      })
+      .exec();
   }
 
   count({ filters }: { filters?: RootFilterQuery<M> }): Promise<number> {

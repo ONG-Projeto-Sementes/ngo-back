@@ -24,3 +24,24 @@ export const createDonation = [
     res.status(201).json(await donationService.insert(req.body));
   }),
 ];
+
+export const updateDonation = [
+  BodyHandler(
+    Joi.object({
+      name: Joi.string().required(),
+      description: Joi.string(),
+    }),
+  ),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    res.status(200).json(await donationService.updateOne(id, req.body));
+  }),
+];
+
+export const deleteDonation = [
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+    await donationService.deleteOne({ filters: { _id: id } });
+    res.status(204).send();
+  }),
+];

@@ -1,10 +1,74 @@
+import mongoose, { ObjectId } from "mongoose";
+import { randomUUID } from "node:crypto";
+
 import { BaseService } from "../core/base-service/index.js";
 import { IEvent, EventModel } from "../models/event.js";
+import { Mutable } from "../core/base-service/interface.js";
+import { fileApi } from "../apis/file.api.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 
 export class EventService extends BaseService<IEvent> {
   constructor() {
     super(EventModel);
+  }
+
+  async insertOneWithImage(
+    data: Mutable<IEvent>,
+    image?: Express.Multer.File,
+  ): Promise<IEvent> {
+    const event = await super.insert(data);
+
+    if (image) {
+      const imagePath = `events/${
+        event._id
+      }/${randomUUID()}.${image.originalname.split(".").pop()}`;
+
+      await fileApi.upload({
+        key: imagePath,
+        data: image.buffer,
+      });
+      data.imageUrl = `https://ong-sementes.s3.sa-east-1.amazonaws.com/${imagePath}`;
+    }
+
+    return (await super.updateOne(event._id, data)) as IEvent;
+  }
+
+  async updateOneWithImage(
+    id: string | ObjectId,
+    data: Partial<IEvent>,
+    image?: Express.Multer.File,
+  ): Promise<IEvent | null> {
+    const event = await super.findById(id);
+
+    if (!event) {
+      throw new NotFoundError("event_not_found", "Event não encontrado.");
+    }
+
+    if (image) {
+      const folder = await fileApi.list({
+        path: `events/${event._id.toString()}`,
+      });
+      if (folder && folder.Contents?.length) {
+        const promises = folder.Contents.map(async (folderFile) =>
+          folderFile.Key
+            ? fileApi.delete({ key: folderFile.Key })
+            : Promise.resolve(),
+        );
+        await Promise.all(promises);
+      }
+
+      const imagePath = `events/${
+        event._id
+      }/${randomUUID()}.${image.originalname.split(".").pop()}`;
+      await fileApi.upload({
+        key: imagePath,
+        data: image.buffer,
+      });
+
+      data.imageUrl = `https://ong-sementes.s3.sa-east-1.amazonaws.com/${imagePath}`;
+    }
+
+    return super.updateOne(id, data);
   }
 
   async paginate({
@@ -15,6 +79,7 @@ export class EventService extends BaseService<IEvent> {
     filters: {
       familyId?: string;
       volunteerIds?: string[];
+      donationId?: string;
       startDate?: Date;
       endDate?: Date;
     };
@@ -24,9 +89,20 @@ export class EventService extends BaseService<IEvent> {
     const events = await this.aggregate([
       {
         $match: {
-          ...(filters.familyId ? { family: filters.familyId } : {}),
+          ...(filters.familyId
+            ? { family: new mongoose.Types.ObjectId(filters.familyId) }
+            : {}),
+          ...(filters.donationId
+            ? { donation: new mongoose.Types.ObjectId(filters.donationId) }
+            : {}),
           ...(filters.volunteerIds?.length
-            ? { volunteers: { $in: filters.volunteerIds } }
+            ? {
+                volunteers: {
+                  $in: filters.volunteerIds.map(
+                    (id) => new mongoose.Types.ObjectId(id),
+                  ),
+                },
+              }
             : {}),
           ...(filters.startDate
             ? { startDate: { $gte: filters.startDate } }
@@ -43,10 +119,10 @@ export class EventService extends BaseService<IEvent> {
           metadata: [{ $count: "total" }],
           data: [
             {
-              $skip: (page - 1) * limit
+              $skip: (page - 1) * limit,
             },
             {
-              $limit: limit
+              $limit: limit,
             },
             {
               $lookup: {
@@ -60,7 +136,7 @@ export class EventService extends BaseService<IEvent> {
               $unwind: {
                 path: "$family",
                 preserveNullAndEmptyArrays: true,
-              }
+              },
             },
             {
               $lookup: {
@@ -73,7 +149,8 @@ export class EventService extends BaseService<IEvent> {
             {
               $unwind: {
                 path: "$donation",
-              }
+                preserveNullAndEmptyArrays: true,
+              },
             },
             {
               $lookup: {
@@ -98,18 +175,6 @@ export class EventService extends BaseService<IEvent> {
       limit,
     };
   }
-
-  async associateVolunteersByEventId(eventId: string, volunteerIds: string[]) {
-    const event = await this.findById(eventId);
-    if (!event) {
-      throw new NotFoundError("event_not_found", "Evento não encontrado");
-    }
-
-    event.volunteers = [
-      ...new Set([...(event.volunteers || []), ...(volunteerIds || [])]),
-    ] as string[];
-    return this.updateOne(eventId, { volunteers: event.volunteers });
-  }
 }
 
-export default new EventService();
+export const eventService = new EventService();
