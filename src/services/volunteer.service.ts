@@ -5,7 +5,10 @@ import { randomUUID } from "node:crypto";
 import { fileApi } from "../apis/file.api.js";
 import { ObjectId } from "mongoose";
 import { NotFoundError } from "../errors/not-found.error.js";
+<<<<<<< HEAD
 import { BadRequestError } from "../errors/bad-request.error.js";
+=======
+>>>>>>> origin/main
 
 export class VolunteerService extends BaseService<IVolunteer> {
   constructor() {
@@ -16,6 +19,7 @@ export class VolunteerService extends BaseService<IVolunteer> {
     data: Mutable<IVolunteer>,
     image?: Express.Multer.File,
   ): Promise<IVolunteer> {
+<<<<<<< HEAD
     if (data.cpf) {
       const exists = await VolunteerModel.findOne({ cpf: data.cpf, deleted: false });
       if (exists) {
@@ -42,12 +46,30 @@ export class VolunteerService extends BaseService<IVolunteer> {
     }
 
     return volunteer;
+=======
+    const event = await super.insert(data);
+
+    if (image) {
+      const imagePath = `volunteer/${
+        event._id
+      }/${randomUUID()}.${image.originalname.split(".").pop()}`;
+
+      await fileApi.upload({
+        key: imagePath,
+        data: image.buffer,
+      });
+      data.profilePicture = `https://ong-sementes.s3.sa-east-1.amazonaws.com/${imagePath}`;
+    }
+
+    return (await super.updateOne(event._id, data)) as IVolunteer;
+>>>>>>> origin/main
   }
 
   async updateOneWithImage(
     id: string | ObjectId,
     data: Partial<IVolunteer>,
     image?: Express.Multer.File,
+<<<<<<< HEAD
   ): Promise<IVolunteer> {
     const volunteer = await VolunteerModel.findById(id);
     if (!volunteer) {
@@ -80,6 +102,40 @@ export class VolunteerService extends BaseService<IVolunteer> {
 
     await volunteer.save();
     return volunteer;
+=======
+  ): Promise<IVolunteer | null> {
+    const event = await super.findById(id);
+
+    if (!event) {
+      throw new NotFoundError("event_not_found", "Event não encontrado.");
+    }
+
+    if (image) {
+      const folder = await fileApi.list({
+        path: `volunteer/${event._id.toString()}`,
+      });
+      if (folder && folder.Contents?.length) {
+        const promises = folder.Contents.map(async (folderFile) =>
+          folderFile.Key
+            ? fileApi.delete({ key: folderFile.Key })
+            : Promise.resolve(),
+        );
+        await Promise.all(promises);
+      }
+
+      const imagePath = `volunteer/${
+        event._id
+      }/${randomUUID()}.${image.originalname.split(".").pop()}`;
+      await fileApi.upload({
+        key: imagePath,
+        data: image.buffer,
+      });
+
+      data.profilePicture = `https://ong-sementes.s3.sa-east-1.amazonaws.com/${imagePath}`;
+    }
+
+    return super.updateOne(id, data);
+>>>>>>> origin/main
   }
 }
 

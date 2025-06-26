@@ -4,6 +4,7 @@ import { FileHandler } from "../middlewares/FileHandler.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { AsyncHandler } from "../middlewares/AsyncHandler.js";
 import { VolunteerService } from "../services/volunteer.service.js";
+import { FileHandler } from "../middlewares/FileHandler.js";
 
 const volunteerService = new VolunteerService();
 
@@ -38,12 +39,24 @@ export const createVolunteer = [
       birthDate: Joi.date().optional(),
     }),
   ),
+<<<<<<< HEAD
   AsyncHandler(async (req, res) => {
     const vol = await volunteerService.insertOneWithImage(
       req.body,
       (req.files as any)?.image?.[0],
     );
     res.status(201).json(vol);
+=======
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    res
+      .status(201)
+      .json(
+        await volunteerService.insertOneWithImage(
+          req.body,
+          (req.files as { image: Express.Multer.File[] })?.image?.[0],
+        ),
+      );
+>>>>>>> origin/main
   }),
 ];
 
@@ -57,6 +70,7 @@ export const updateVolunteer = [
       birthDate: Joi.date().optional(),
     }),
   ),
+<<<<<<< HEAD
   AsyncHandler(async (req, res) => {
     const { id } = req.params;
     const vol = await volunteerService.updateOneWithImage(
@@ -80,5 +94,19 @@ export const deleteVolunteer = [
     }
     await volunteerService.updateOne(id, { deleted: true });
     res.status(204).send();
+=======
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    const { id } = req.params;
+
+    res
+      .status(200)
+      .json(
+        await volunteerService.updateOneWithImage(
+          id,
+          req.body,
+          (req.files as { image: Express.Multer.File[] })?.image?.[0],
+        ),
+      );
+>>>>>>> origin/main
   }),
 ];
