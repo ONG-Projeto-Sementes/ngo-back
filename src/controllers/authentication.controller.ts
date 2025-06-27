@@ -33,7 +33,7 @@ export const login = [
     res.cookie("sessionToken", authenticatedUser.authentication.sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -85,9 +85,8 @@ export const isAuthenticatedHandler = (
 export const logout = (req: express.Request, res: express.Response) => {
   res.clearCookie("sessionToken", {
     httpOnly: true,
-    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
   });
   res.sendStatus(200);
-  return;
 };
