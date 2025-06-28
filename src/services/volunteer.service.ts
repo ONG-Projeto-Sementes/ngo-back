@@ -12,9 +12,30 @@ export class VolunteerService extends BaseService<IVolunteer> {
     super(VolunteerModel);
   }
 
+  async listPaginated(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<{
+    data: IVolunteer[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  }> {
+    const { page = 1, limit = 10, search = "" } = options;
+
+    const filters: any = {};
+    if (search.trim()) {
+      filters.name = { $regex: search.trim(), $options: "i" };
+    }
+
+    return this.paginate({ filters, page, limit });
+  }
+
   async insertOneWithImage(
-      data: Mutable<IVolunteer>,
-      image?: Express.Multer.File,
+    data: Mutable<IVolunteer>,
+    image?: Express.Multer.File,
   ): Promise<IVolunteer> {
     if (data.cpf) {
       const exists = await VolunteerModel.findOne({ cpf: data.cpf, deleted: false });
@@ -45,9 +66,9 @@ export class VolunteerService extends BaseService<IVolunteer> {
   }
 
   async updateOneWithImage(
-      id: string | ObjectId,
-      data: Partial<IVolunteer>,
-      image?: Express.Multer.File,
+    id: string | ObjectId,
+    data: Partial<IVolunteer>,
+    image?: Express.Multer.File,
   ): Promise<IVolunteer> {
     const volunteer = await VolunteerModel.findById(id);
     if (!volunteer) {
@@ -67,11 +88,12 @@ export class VolunteerService extends BaseService<IVolunteer> {
       const folder = await fileApi.list({ path: `volunteer/${volunteer._id}` });
       if (folder.Contents?.length) {
         await Promise.all(
-            folder.Contents.map((f) =>
-                f.Key ? fileApi.delete({ key: f.Key }) : Promise.resolve()
-            )
+          folder.Contents.map((f) =>
+            f.Key ? fileApi.delete({ key: f.Key }) : Promise.resolve()
+          )
         );
       }
+
       const ext = image.originalname.split(".").pop();
       const imagePath = `volunteer/${volunteer._id}/${randomUUID()}.${ext}`;
       await fileApi.upload({ key: imagePath, data: image.buffer });

@@ -8,9 +8,25 @@ import { VolunteerService } from "../services/volunteer.service.js";
 const volunteerService = new VolunteerService();
 
 export const getVolunteers = [
-    AsyncHandler(async (req, res) => {
-        res.status(200).json(await volunteerService.list({}));
-    }),
+  AsyncHandler(async (req, res) => {
+    // lê page, limit e search da query string (defaults: 1, 10, "")
+    const page  = parseInt(req.query.page  as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const search= (req.query.search as string)       || "";
+
+    // usa o método paginado do service
+    const { data, total, totalPages, currentPage, limit: lim } =
+      await volunteerService.listPaginated({ page, limit, search });
+
+    // devolve os dados + metadados
+    res.status(200).json({
+      data,
+      total,
+      totalPages,
+      currentPage,
+      limit: lim,
+    });
+  }),
 ];
 
 export const getVolunteer = [
