@@ -1,49 +1,40 @@
 import Joi from "joi";
-import express from "express";
 
-import { EventService } from "../services/event.service.js";
+import { eventService } from "../services/event.service.js";
 import { QueryHandler } from "../middlewares/QueryHandler.js";
 import { AsyncHandler } from "../middlewares/AsyncHandler.js";
 import { BodyHandler } from "../middlewares/BodyHandler.js";
 import { FileHandler } from "../middlewares/FileHandler.js";
+import { NotFoundError } from "../errors/not-found.error.js";
 
-const eventService = new EventService();
+export const getEvents = [
+  AsyncHandler(async (req, res) => {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const search = (req.query.search as string) || "";
 
-export const paginateEvents = [
-  QueryHandler(
-    Joi.object({
-      page: Joi.number().integer().min(1).default(1),
-      limit: Joi.number().integer().min(1).max(100).default(10),
+    const result = await eventService.listPaginated({ page, limit, search });
+    res.status(200).json(result);
+  }),
+];
 
-      familyId: Joi.string().optional(),
-      donationId: Joi.string().optional(),
-      volunteerIds: Joi.array().items(Joi.string()).optional(),
-      startDate: Joi.date().optional(),
-      endDate: Joi.date().optional(),
-    }),
-  ),
-  AsyncHandler(async (req: express.Request, res: express.Response) => {
-    const { page, limit } = (req.query || {}) as {
-      page: string;
-      limit: string;
-    };
-    res.status(200).json(
-      await eventService.paginate({
-        filters: {
-          familyId: req.query?.familyId as string,
-          donationId: req.query?.donationId as string,
-          volunteerIds: (req.query?.volunteerIds as string)?.split(",") || [],
-          startDate: req.query?.startDate
-            ? new Date(req.query.startDate as string)
-            : undefined,
-          endDate: req.query?.endDate
-            ? new Date(req.query.endDate as string)
-            : undefined,
-        },
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-      }),
-    );
+export const getLastEvents = [
+  AsyncHandler(async (req, res) => {
+    const events = await eventService.getLastEvents();
+    res.status(200).json(events);
+  }),
+];
+
+export const getEvent = [
+  AsyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const event = await eventService.getEventWithVolunteers(id);
+    
+    if (!event) {
+      throw new NotFoundError("event_not_found", "Evento não encontrado");
+    }
+    
+    res.status(200).json(event);
   }),
 ];
 
@@ -51,15 +42,16 @@ export const createEvent = [
   FileHandler([{ name: "image", maxCount: 1 }]),
   BodyHandler(
     Joi.object({
-      donation: Joi.string().required(),
-      volunteers: Joi.array().items(Joi.string()).required(),
-      deliveryDate: Joi.date().required(),
-      observations: Joi.string().optional(),
-      family: Joi.string().required(),
-      imageUrl: Joi.string().uri().optional(),
+      title: Joi.string().required(),
+      description: Joi.string().optional(),
+      location: Joi.string().optional(),
+      startDate: Joi.date().required(),
+      endDate: Joi.date().optional(),
+      maxVolunteers: Joi.number().integer().min(1).optional(),
+      volunteers: Joi.array().items(Joi.string()).optional(),
     }),
   ),
-  AsyncHandler(async (req: express.Request, res: express.Response) => {
+  AsyncHandler(async (req, res) => {
     res
       .status(201)
       .json(
@@ -75,15 +67,16 @@ export const updateEvent = [
   FileHandler([{ name: "image", maxCount: 1 }]),
   BodyHandler(
     Joi.object({
-      volunteerIds: Joi.array().items(Joi.string()).optional(),
-      donation: Joi.string().optional(),
-      deliveryDate: Joi.date().optional(),
-      observations: Joi.string().optional(),
-      family: Joi.string().optional(),
-      imageUrl: Joi.string().uri().optional(),
+      title: Joi.string().optional(),
+      description: Joi.string().optional(),
+      location: Joi.string().optional(),
+      startDate: Joi.date().optional(),
+      endDate: Joi.date().optional(),
+      maxVolunteers: Joi.number().integer().min(1).optional(),
+      volunteers: Joi.array().items(Joi.string()).optional(),
     }),
   ),
-  AsyncHandler(async (req: express.Request, res: express.Response) => {
+  AsyncHandler(async (req, res) => {
     const { id } = req.params;
 
     res
@@ -99,10 +92,34 @@ export const updateEvent = [
 ];
 
 export const deleteEvent = [
-  AsyncHandler(async (req: express.Request, res: express.Response) => {
+  AsyncHandler(async (req, res) => {
     const { id } = req.params;
 
     await eventService.deleteOne({ filters: { _id: id } });
     res.status(204).send();
+  }),
+];
+
+export const addVolunteerToEvent = [
+  BodyHandler(
+    Joi.object({
+      volunteerId: Joi.string().required(),
+    }),
+  ),
+  AsyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { volunteerId } = req.body;
+
+    const event = await eventService.addVolunteerToEvent(id, volunteerId);
+    res.status(200).json(event);
+  }),
+];
+
+export const removeVolunteerFromEvent = [
+  AsyncHandler(async (req, res) => {
+    const { id, volunteerId } = req.params;
+
+    const event = await eventService.removeVolunteerFromEvent(id, volunteerId);
+    res.status(200).json(event);
   }),
 ];
