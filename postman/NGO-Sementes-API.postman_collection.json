@@ -1,0 +1,472 @@
+{
+  "info": {
+    "name": "NGO Sementes - Complete API",
+    "description": "Coleção completa da API do sistema NGO Sementes incluindo autenticação, categorias de doação e doações",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\",\n  \"confirmPassword\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": ["{{base_url}}"],
+              "path": ["register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Donation Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donation-categories",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Categories with Pagination",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donation-categories?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donation-categories?search=alimento",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "alimento"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donation-categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories", "{{category_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Categoria Teste\",\n  \"description\": \"Descrição da categoria de teste\",\n  \"defaultUnit\": \"unidades\",\n  \"icon\": \"test-icon\",\n  \"color\": \"#FF5733\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donation-categories",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('category_id', response.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Categoria Atualizada\",\n  \"description\": \"Descrição atualizada\",\n  \"defaultUnit\": \"peças\",\n  \"icon\": \"updated-icon\",\n  \"color\": \"#33FF57\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donation-categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories", "{{category_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Activate/Deactivate Category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donation-categories/{{category_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories", "{{category_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/donation-categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donation-categories", "{{category_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Donations",
+      "item": [
+        {
+          "name": "Get All Donations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations",
+              "host": ["{{base_url}}"],
+              "path": ["donations"]
+            }
+          }
+        },
+        {
+          "name": "Get Donations with Pagination",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Donations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations?search=joão",
+              "host": ["{{base_url}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "joão"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations?categoryId={{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "{{category_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations?status=received",
+              "host": ["{{base_url}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "received"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Date Range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations?startDate=2025-01-01&endDate=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Donation by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Donation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donorName\": \"João Silva\",\n  \"donorEmail\": \"joao@email.com\",\n  \"donorPhone\": \"(11) 99999-9999\",\n  \"categoryId\": \"{{category_id}}\",\n  \"description\": \"Doação de cestas básicas\",\n  \"quantity\": 10,\n  \"unit\": \"unidades\",\n  \"estimatedValue\": 500.00,\n  \"donationDate\": \"2025-07-11\",\n  \"status\": \"pending\",\n  \"notes\": \"Doação para famílias carentes\",\n  \"isAnonymous\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donations",
+              "host": ["{{base_url}}"],
+              "path": ["donations"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('donation_id', response.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Donation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donorName\": \"João Silva Santos\",\n  \"donorEmail\": \"joao.santos@email.com\",\n  \"donorPhone\": \"(11) 88888-8888\",\n  \"description\": \"Doação de cestas básicas - ATUALIZADA\",\n  \"quantity\": 15,\n  \"estimatedValue\": 750.00,\n  \"notes\": \"Doação atualizada para mais famílias\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Donation Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"received\",\n  \"notes\": \"Doação recebida com sucesso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Delete Donation",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Donation Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Statistics by Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations/statistics/categories",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "statistics", "categories"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

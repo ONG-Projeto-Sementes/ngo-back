@@ -9,12 +9,15 @@ import eventRoute from "./event.route.js";
 import donationRoute from "./donation.route.js";
 import donationCategoryRoute from "./donation-category.route.js";
 import beneficiaryRoute from "./beneficiary.route.js";
+import analyticsRoute from "./analytics.route.js";
 
 const router = express.Router();
 
 export default (): express.Router => {
+  // Public routes (no authentication required)
   authentication(router);
 
+  // Apply authentication middleware to all subsequent routes
   router.use(isAuthenticated);
 
   // Protected routes
@@ -25,6 +28,7 @@ export default (): express.Router => {
   donationCategoryRoute(router);
   volunteerRoute(router);
   beneficiaryRoute(router);
+  analyticsRoute(router);
 
   return router;
 };
