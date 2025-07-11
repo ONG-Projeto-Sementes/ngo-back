@@ -18,16 +18,41 @@ export class DonationService extends BaseService<IDonation> {
 
   // Validar se a categoria existe e está ativa
   async validateCategory(categoryId: string): Promise<void> {
+    console.log('🔍 Validating category ID:', categoryId);
+    console.log('🔍 Category ID type:', typeof categoryId);
+    console.log('🔍 Is valid ObjectId:', mongoose.Types.ObjectId.isValid(categoryId));
+    
+    // Primeiro, verificar se a categoria existe (independente do isActive)
+    const categoryExists = await this.categoryService.findOne({
+      filters: { _id: categoryId }
+    });
+    console.log('🏷️ Category exists (any status):', categoryExists);
+    
+    // Depois, verificar se existe e está ativa
     const category = await this.categoryService.findOne({
       filters: { _id: categoryId, isActive: true }
     });
 
+    console.log('🏷️ Found active category:', category);
+
     if (!category) {
-      throw new BadRequestError(
-        "invalid_category",
-        "Categoria inválida ou inativa"
-      );
+      console.log('❌ Category not found or inactive');
+      if (categoryExists) {
+        console.log('⚠️ Category exists but is not active:', categoryExists);
+        throw new BadRequestError(
+          "inactive_category",
+          "Categoria está inativa"
+        );
+      } else {
+        console.log('❌ Category does not exist');
+        throw new BadRequestError(
+          "invalid_category",
+          "Categoria não encontrada"
+        );
+      }
     }
+    
+    console.log('✅ Category validation passed');
   }
 
   // Override do insert para validar categoria

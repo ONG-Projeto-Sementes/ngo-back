@@ -1,5 +1,6 @@
 import Joi from "joi";
 import express from "express";
+import mongoose from "mongoose";
 
 import { BodyHandler } from "../middlewares/BodyHandler.js";
 import { AsyncHandler } from "../middlewares/AsyncHandler.js";
@@ -57,21 +58,35 @@ export const getDonations = [
     try {
       const { page = 1, limit = 10, search, categoryId, status, donorName } = req.query as any;
       
+      console.log('🔍 Request query params:', req.query);
+      console.log('🔍 Extracted params:', { page, limit, search, categoryId, status, donorName });
+      
       let filters: any = {};
       
       // Filtro por categoria
       if (categoryId) {
-        filters.categoryId = categoryId;
+        // Verificar se o categoryId é um ObjectId válido
+        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+          console.log('❌ Invalid categoryId format:', categoryId);
+          res.status(400).json({
+            message: "ID de categoria inválido"
+          });
+          return;
+        }
+        filters.categoryId = new mongoose.Types.ObjectId(categoryId);
+        console.log('📂 Adding category filter:', categoryId);
       }
       
       // Filtro por status
       if (status) {
         filters.status = status;
+        console.log('📋 Adding status filter:', status);
       }
       
       // Filtro por nome do doador
       if (donorName) {
         filters.donorName = { $regex: donorName, $options: 'i' };
+        console.log('👤 Adding donor filter:', donorName);
       }
       
       // Filtro de busca geral (nome do doador ou descrição)
@@ -80,13 +95,24 @@ export const getDonations = [
           { donorName: { $regex: search, $options: 'i' } },
           { description: { $regex: search, $options: 'i' } }
         ];
+        console.log('🔍 Adding search filter:', search);
       }
 
+      console.log('🎯 Final filters object:', JSON.stringify(filters, null, 2));
+
       if (page && limit) {
+        console.log('📄 Using pagination with page:', page, 'limit:', limit);
         const result = await DonationService.paginate({
           filters,
           page: Number(page),
           limit: Number(limit)
+        });
+
+        console.log('📊 Pagination result:', {
+          total: result.total,
+          totalPages: result.totalPages,
+          currentPage: result.currentPage,
+          dataLength: result.data.length
         });
 
         // Populate das categorias no resultado paginado
@@ -198,14 +224,21 @@ export const createDonation = [
   BodyHandler(createDonationSchema),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
     try {
+      console.log('📝 Creating donation with data:', req.body);
+      console.log('📂 Category ID received:', req.body.categoryId);
+      
       const donation = await DonationService.insert(req.body);
+      console.log('✅ Donation created with ID:', donation._id);
+      
       const populatedDonation = await DonationService.findByIdWithCategory(donation._id.toString());
+      console.log('🔗 Populated donation:', populatedDonation);
       
       res.status(201).json({
         message: "Doação criada com sucesso",
         data: populatedDonation
       });
     } catch (error) {
+      console.error('❌ Error creating donation:', error);
       throw error;
     }
   }),

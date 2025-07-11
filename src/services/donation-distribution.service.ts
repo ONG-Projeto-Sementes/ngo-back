@@ -13,7 +13,34 @@ export class DonationDistributionService extends BaseService<IDonationDistributi
 
   // Validar se a doação existe e tem quantidade disponível
   async validateDonationAndQuantity(donationId: string, requestedQuantity: number, excludeDistributionId?: string): Promise<void> {
+    console.log('Validating donation ID:', donationId);
+    console.log('Donation ID type:', typeof donationId);
+    console.log('Requested quantity:', requestedQuantity);
+    console.log('Is valid ObjectId:', mongoose.Types.ObjectId.isValid(donationId));
+    
+    // Verificar se o donationId é um ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(donationId)) {
+      console.log('Invalid ObjectId format:', donationId);
+      throw new NotFoundError("donation_invalid_id", "ID de doação inválido");
+    }
+    
+    // Listar algumas doações para debug
+    const allDonations = await DonationModel.find({}).limit(5);
+    console.log('Available donations:', allDonations.map(d => ({ 
+      id: d._id.toString(), 
+      donorName: d.donorName,
+      status: d.status
+    })));
+    
     const donation = await DonationModel.findById(donationId);
+    console.log('Found donation:', donation ? 'YES' : 'NO');
+    console.log('Donation details:', donation ? {
+      id: donation._id.toString(),
+      donorName: donation.donorName,
+      status: donation.status,
+      quantity: donation.quantity
+    } : null);
+    
     if (!donation) {
       throw new NotFoundError("donation_not_found", "Doação não encontrada");
     }

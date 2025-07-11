@@ -34,7 +34,8 @@ export class AnalyticsService {
       recentDonations,
       topDonations,
       statusBreakdown,
-      categoryBreakdown
+      categoryBreakdown,
+      growthPercentages
     ] = await Promise.all([
       this.getTotalDonationStats(donationFilters),
       this.getDistributionStats(filters),
@@ -42,7 +43,8 @@ export class AnalyticsService {
       this.getRecentDonations(5),
       this.getTopDonations(3),
       this.getDonationStatusBreakdown(donationFilters),
-      this.getCategoryBreakdown(donationFilters)
+      this.getCategoryBreakdown(donationFilters),
+      this.getGrowthPercentages(filters)
     ]);
 
     return {
@@ -68,7 +70,13 @@ export class AnalyticsService {
           : 0,
         stockPercentage: totalStats.totalQuantity > 0 
           ? Math.round(((totalStats.totalQuantity - distributionStats.totalDistributed) / totalStats.totalQuantity) * 100) 
-          : 0
+          : 0,
+        
+        // Percentuais de crescimento
+        totalDonors: totalStats.totalDonors || 0,
+        donationsGrowth: growthPercentages.donationsGrowth,
+        valueGrowth: growthPercentages.valueGrowth,
+        donorsGrowth: growthPercentages.donorsGrowth
       },
       
       recent: {
@@ -578,7 +586,17 @@ export class AnalyticsService {
           totalDonations: { $sum: 1 },
           totalValue: { $sum: '$estimatedValue' },
           totalQuantity: { $sum: '$quantity' },
-          avgValue: { $avg: '$estimatedValue' }
+          avgValue: { $avg: '$estimatedValue' },
+          totalDonors: { $addToSet: '$donorName' }
+        }
+      },
+      {
+        $project: {
+          totalDonations: 1,
+          totalValue: 1,
+          totalQuantity: 1,
+          avgValue: 1,
+          totalDonors: { $size: '$totalDonors' }
         }
       }
     ]);
@@ -587,7 +605,8 @@ export class AnalyticsService {
       totalDonations: 0,
       totalValue: 0,
       totalQuantity: 0,
-      avgValue: 0
+      avgValue: 0,
+      totalDonors: 0
     };
 
     return {
@@ -927,6 +946,112 @@ export class AnalyticsService {
       deleted: false,
       status: 'pending'
     });
+  }
+
+  /**
+   * Calcula percentuais de crescimento comparando período atual com anterior
+   */
+  private async getGrowthPercentages(filters: { period?: string } = {}) {
+    const period = filters.period || 'month';
+    
+    // Definir datas para período atual e anterior
+    const now = new Date();
+    let currentStart: Date, currentEnd: Date, previousStart: Date, previousEnd: Date;
+    
+    if (period === 'month') {
+      // Mês atual
+      currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      // Mês anterior
+      previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      previousEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    } else if (period === 'week') {
+      // Semana atual (domingo a sábado)
+      const currentWeekStart = new Date(now);
+      currentWeekStart.setDate(now.getDate() - now.getDay());
+      currentStart = new Date(currentWeekStart.getFullYear(), currentWeekStart.getMonth(), currentWeekStart.getDate());
+      currentEnd = new Date(currentStart);
+      currentEnd.setDate(currentEnd.getDate() + 6);
+      
+      // Semana anterior
+      previousStart = new Date(currentStart);
+      previousStart.setDate(previousStart.getDate() - 7);
+      previousEnd = new Date(currentStart);
+      previousEnd.setDate(previousEnd.getDate() - 1);
+    } else {
+      // Para outros períodos, usar mês como padrão
+      currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      previousEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    }
+
+    // Buscar dados do período atual
+    const currentData = await this.getBasicStats({
+      startDate: currentStart,
+      endDate: currentEnd
+    });
+
+    // Buscar dados do período anterior
+    const previousData = await this.getBasicStats({
+      startDate: previousStart,
+      endDate: previousEnd
+    });
+
+    // Calcular percentuais de crescimento
+    const calculateGrowth = (current: number, previous: number): number => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    };
+
+    return {
+      donationsGrowth: calculateGrowth(currentData.totalDonations, previousData.totalDonations),
+      valueGrowth: calculateGrowth(currentData.totalValue, previousData.totalValue),
+      donorsGrowth: calculateGrowth(currentData.totalDonors, previousData.totalDonors)
+    };
+  }
+
+  /**
+   * Obtém estatísticas básicas de doações
+   */
+  private async getBasicStats(filters: any) {
+    const dateFilter: any = { deleted: false };
+    
+    if (filters.startDate && filters.endDate) {
+      dateFilter.receivedDate = {
+        $gte: filters.startDate,
+        $lte: filters.endDate
+      };
+    }
+    
+    const stats = await DonationModel.aggregate([
+      { $match: dateFilter },
+      {
+        $group: {
+          _id: null,
+          totalDonations: { $sum: 1 },
+          totalValue: { $sum: '$estimatedValue' },
+          totalQuantity: { $sum: '$quantity' },
+          totalDonors: { $addToSet: '$donorName' }
+        }
+      },
+      {
+        $project: {
+          totalDonations: 1,
+          totalValue: 1,
+          totalQuantity: 1,
+          totalDonors: { $size: '$totalDonors' }
+        }
+      }
+    ]);
+
+    return stats[0] || {
+      totalDonations: 0,
+      totalValue: 0,
+      totalQuantity: 0,
+      totalDonors: 0
+    };
   }
 }
 

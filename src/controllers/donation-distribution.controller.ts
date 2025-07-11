@@ -155,6 +155,8 @@ export const createDistribution = [
   BodyHandler(createDistributionSchema),
   AsyncHandler(async (req: express.Request, res: express.Response) => {
     try {
+      console.log('Received distribution data:', req.body);
+      
       const distributionService = new DonationDistributionService();
       const distribution = await distributionService.insert(req.body);
 
@@ -163,6 +165,8 @@ export const createDistribution = [
         data: distribution
       });
     } catch (error) {
+      console.error('Error in createDistribution:', error);
+      
       if (error instanceof Error) {
         if (error.message.includes("not_found")) {
           res.status(404).json({
