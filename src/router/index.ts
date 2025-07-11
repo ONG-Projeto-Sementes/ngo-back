@@ -7,6 +7,7 @@ import volunteerRoute from "./volunteer.route.js";
 import familyRoute from "./family.route.js";
 import eventRoute from "./event.route.js";
 import donationRoute from "./donation.route.js";
+import donationCategoryRoute from "./donation-category.route.js";
 import beneficiaryRoute from "./beneficiary.route.js";
 
 const router = express.Router();
@@ -21,6 +22,7 @@ export default (): express.Router => {
   eventRoute(router);
   familyRoute(router);
   donationRoute(router);
+  donationCategoryRoute(router);
   volunteerRoute(router);
   beneficiaryRoute(router);
 

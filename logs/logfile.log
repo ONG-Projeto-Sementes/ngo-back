@@ -128,3 +128,50 @@
 2025-07-11 01:41:22 error: An error occurred: Usuário já existe
 2025-07-11 01:44:33 error: An error occurred: CPF já cadastrado
 2025-07-11 03:39:16 error: An error occurred: Sessão não encontrada
+2025-07-11 04:32:04 error: An error occurred: Sessão não encontrada
+2025-07-11 04:45:02 error: An error occurred: "categoryId" with value "{categoryId}" fails to match the required pattern: /^[0-9a-fA-F]{24}$/
+2025-07-11 04:59:04 error: An error occurred: Sessão não encontrada
+2025-07-11 04:59:04 error: An error occurred: Sessão não encontrada
+2025-07-11 04:59:05 error: An error occurred: Sessão não encontrada
+2025-07-11 07:26:39 error: An error occurred: Sessão não encontrada
+2025-07-11 07:26:45 error: An error occurred: Sessão não encontrada
+2025-07-11 07:29:53 error: An error occurred: Sessão não encontrada
+2025-07-11 07:29:53 error: An error occurred: Sessão não encontrada
+2025-07-11 07:30:36 error: An error occurred: Sessão não encontrada
+2025-07-11 07:30:47 error: An error occurred: Usuário não encontrado
+2025-07-11 08:19:31 error: An error occurred: Usuário não encontrado
+2025-07-11 06:30:47 error: An error occurred: Sessão não encontrada
+2025-07-11 06:30:47 error: An error occurred: Sessão não encontrada
+2025-07-11 06:32:21 error: An error occurred: Sem sessão ativa
+2025-07-11 06:32:21 error: An error occurred: Sem sessão ativa
+2025-07-11 06:32:21 error: An error occurred: Sem sessão ativa
+2025-07-11 06:32:21 error: An error occurred: Sem sessão ativa
+2025-07-11 06:33:01 error: An error occurred: Credenciais inválidas
+2025-07-11 06:33:08 error: An error occurred: Credenciais inválidas
+2025-07-11 06:33:13 error: An error occurred: Usuário não encontrado
+2025-07-11 06:33:13 error: An error occurred: "username" is required
+2025-07-11 09:33:54 error: An error occurred: Usuário já existe
+2025-07-11 06:33:59 error: An error occurred: Credenciais inválidas
+2025-07-11 06:34:11 error: An error occurred: Credenciais inválidas
+2025-07-11 06:34:13 error: An error occurred: Credenciais inválidas
+2025-07-11 06:34:14 error: An error occurred: Credenciais inválidas
+2025-07-11 06:34:18 error: An error occurred: Credenciais inválidas
+2025-07-11 06:34:24 error: An error occurred: Usuário não encontrado
+2025-07-11 06:35:43 error: An error occurred: Credenciais inválidas
+2025-07-11 06:35:53 error: An error occurred: Sessão não encontrada
+2025-07-11 06:36:08 error: An error occurred: Sessão não encontrada
+2025-07-11 06:36:49 error: An error occurred: Sessão não encontrada
+2025-07-11 06:37:31 error: An error occurred: Sessão não encontrada
+2025-07-11 06:38:06 error: An error occurred: Sessão não encontrada
+2025-07-11 06:38:29 error: An error occurred: Sessão não encontrada
+2025-07-11 09:46:22 error: An error occurred: Sessão não encontrada
+2025-07-11 10:10:53 error: An error occurred: "icon" is not allowed to be empty
+2025-07-11 10:10:55 error: An error occurred: "icon" is not allowed to be empty
+2025-07-11 10:12:46 error: An error occurred: "icon" is not allowed to be empty
+2025-07-11 10:28:57 error: An error occurred: Parametros de busca inválidos.
+2025-07-11 10:38:47 error: An error occurred: Sem sessão ativa
+2025-07-11 10:40:00 error: An error occurred: Usuário não encontrado
+2025-07-11 10:40:16 error: An error occurred: Usuário não encontrado
+2025-07-11 10:40:41 error: An error occurred: "username" is required
+2025-07-11 10:41:58 error: An error occurred: Sem sessão ativa
+2025-07-11 10:42:09 error: An error occurred: Sem sessão ativa
