@@ -8,6 +8,7 @@ import familyRoute from "./family.route.js";
 import eventRoute from "./event.route.js";
 import donationRoute from "./donation.route.js";
 import donationCategoryRoute from "./donation-category.route.js";
+import donationDistributionRoute from "./donation-distribution.route.js";
 import beneficiaryRoute from "./beneficiary.route.js";
 import analyticsRoute from "./analytics.route.js";
 
@@ -26,6 +27,7 @@ export default (): express.Router => {
   familyRoute(router);
   donationRoute(router);
   donationCategoryRoute(router);
+  donationDistributionRoute(router);
   volunteerRoute(router);
   beneficiaryRoute(router);
   analyticsRoute(router);

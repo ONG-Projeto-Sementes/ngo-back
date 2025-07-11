@@ -260,3 +260,147 @@ export const deleteDonation = [
     }
   }),
 ];
+
+// Buscar doações com estatísticas de distribuição
+export const getDonationsWithStats = [
+  QueryHandler(querySchema),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    try {
+      const { page = 1, limit = 10, search, categoryId, status, donorName } = req.query as any;
+      
+      const filters: any = {};
+      if (search) {
+        filters.$or = [
+          { donorName: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ];
+      }
+      if (categoryId) filters.categoryId = categoryId;
+      if (status) filters.status = status;
+      if (donorName) filters.donorName = { $regex: donorName, $options: 'i' };
+
+      const donations = await DonationService.findWithCategoryAndStats(filters);
+
+      res.status(200).json({
+        message: "Doações com estatísticas listadas com sucesso",
+        data: donations
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Erro interno do servidor ao listar doações",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  }),
+];
+
+// Buscar doação por ID com estatísticas
+export const getDonationByIdWithStats = [
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    try {
+      const { id } = req.params;
+      const donation = await DonationService.findByIdWithCategoryAndStats(id);
+
+      res.status(200).json({
+        message: "Doação encontrada com sucesso",
+        data: donation
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("not_found")) {
+        res.status(404).json({
+          message: error.message
+        });
+        return;
+      }
+      
+      res.status(500).json({
+        message: "Erro interno do servidor ao buscar doação",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  }),
+];
+
+// Distribuir doação para famílias
+export const distributeToFamilies = [
+  BodyHandler(Joi.object({
+    distributions: Joi.array().items(
+      Joi.object({
+        familyId: Joi.string().required().pattern(/^[0-9a-fA-F]{24}$/),
+        quantity: Joi.number().required().min(0.01),
+        notes: Joi.string().optional().max(1000).trim()
+      })
+    ).required().min(1)
+  })),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    try {
+      const { id } = req.params;
+      const { distributions } = req.body;
+
+      const results = await DonationService.distributeToFamilies(id, distributions);
+
+      res.status(201).json({
+        message: "Doação distribuída com sucesso",
+        data: results
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("not_found")) {
+          res.status(404).json({
+            message: error.message
+          });
+          return;
+        }
+        if (error.message.includes("insufficient_quantity")) {
+          res.status(400).json({
+            message: error.message
+          });
+          return;
+        }
+      }
+      
+      res.status(500).json({
+        message: "Erro interno do servidor ao distribuir doação",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  }),
+];
+
+// Listar doações com paginação avançada
+export const getDonationsWithPagination = [
+  QueryHandler(Joi.object({
+    page: Joi.number().integer().min(1).optional(),
+    limit: Joi.number().integer().min(1).max(100).optional(),
+    search: Joi.string().optional().trim(),
+    categoryId: Joi.string().optional().pattern(/^[0-9a-fA-F]{24}$/),
+    status: Joi.string().valid('pending', 'received', 'distributed', 'expired').optional(),
+    dateFrom: Joi.date().optional(),
+    dateTo: Joi.date().optional()
+  })),
+  AsyncHandler(async (req: express.Request, res: express.Response) => {
+    try {
+      const { page, limit, search, categoryId, status, dateFrom, dateTo } = req.query as any;
+      
+      const result = await DonationService.listWithPagination({
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        search,
+        categoryId,
+        status,
+        dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+        dateTo: dateTo ? new Date(dateTo) : undefined
+      });
+
+      res.status(200).json({
+        message: "Doações listadas com sucesso",
+        data: result
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Erro interno do servidor ao listar doações",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  }),
+];

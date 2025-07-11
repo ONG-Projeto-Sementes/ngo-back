@@ -24,6 +24,31 @@
       "key": "auth_token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "donation_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "family_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "family_id_2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "distribution_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -463,6 +488,351 @@
               "raw": "{{base_url}}/donations/statistics/categories",
               "host": ["{{base_url}}"],
               "path": ["donations", "statistics", "categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Donation Distributions",
+      "item": [
+        {
+          "name": "Get All Distributions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/distributions",
+              "host": ["{{base_url}}"],
+              "path": ["distributions"]
+            }
+          }
+        },
+        {
+          "name": "Get Distributions with Pagination",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/distributions?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["distributions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Donation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/distributions?donationId={{donation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["distributions"],
+              "query": [
+                {
+                  "key": "donationId",
+                  "value": "{{donation_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Family",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/distributions?familyId={{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["distributions"],
+              "query": [
+                {
+                  "key": "familyId",
+                  "value": "{{family_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/distributions?status=pending",
+              "host": ["{{base_url}}"],
+              "path": ["distributions"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Distribution by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/distributions/{{distribution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["distributions", "{{distribution_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Distribution",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donationId\": \"{{donation_id}}\",\n  \"familyId\": \"{{family_id}}\",\n  \"quantityDistributed\": 5,\n  \"notes\": \"Distribuição para família necessitada\",\n  \"status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/distributions",
+              "host": ["{{base_url}}"],
+              "path": ["distributions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('distribution_id', response.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Distribute to Multiple Families",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distributions\": [\n    {\n      \"familyId\": \"{{family_id}}\",\n      \"quantity\": 3,\n      \"notes\": \"Primeira família\"\n    },\n    {\n      \"familyId\": \"{{family_id_2}}\",\n      \"quantity\": 2,\n      \"notes\": \"Segunda família\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}/distribute",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}", "distribute"]
+            }
+          }
+        },
+        {
+          "name": "Update Distribution",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantityDistributed\": 7,\n  \"notes\": \"Quantidade atualizada\",\n  \"status\": \"delivered\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/distributions/{{distribution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["distributions", "{{distribution_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Delivery",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/distributions/{{distribution_id}}/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["distributions", "{{distribution_id}}", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Distribution",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/distributions/{{distribution_id}}/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["distributions", "{{distribution_id}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Delete Distribution",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/distributions/{{distribution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["distributions", "{{distribution_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Distributions by Donation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}/distributions",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}", "distributions"]
+            }
+          }
+        },
+        {
+          "name": "Get Family Donation History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/families/{{family_id}}/donation-history",
+              "host": ["{{base_url}}"],
+              "path": ["families", "{{family_id}}", "donation-history"]
+            }
+          }
+        },
+        {
+          "name": "Get Donation Distribution Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/donations/{{donation_id}}/distributions/stats",
+              "host": ["{{base_url}}"],
+              "path": ["donations", "{{donation_id}}", "distributions", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Families",
+      "item": [
+        {
+          "name": "Get All Families",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/families",
+              "host": ["{{base_url}}"],
+              "path": ["families"]
+            }
+          }
+        },
+        {
+          "name": "Get Family by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Family",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Família Silva\",\n  \"city\": \"São Paulo\",\n  \"neighborhood\": \"Centro\",\n  \"contact\": \"(11) 99999-9999\",\n  \"address\": \"Rua das Flores, 123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/families",
+              "host": ["{{base_url}}"],
+              "path": ["families"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('family_id', response.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Family",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Família Silva Santos\",\n  \"city\": \"São Paulo\",\n  \"neighborhood\": \"Vila Madalena\",\n  \"contact\": \"(11) 88888-8888\",\n  \"address\": \"Rua das Palmeiras, 456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Family",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Family Donation History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/families/{{family_id}}/donation-history",
+              "host": ["{{base_url}}"],
+              "path": ["families", "{{family_id}}", "donation-history"]
             }
           }
         }

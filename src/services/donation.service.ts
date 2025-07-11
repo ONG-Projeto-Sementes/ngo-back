@@ -2,16 +2,23 @@ import { BaseService } from "../core/base-service/index.js";
 import { IDonation, DonationModel } from "../models/donation.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
-import DonationCategoryService from "./donation-category.service.js";
+import { DonationCategoryService } from "./donation-category.service.js";
+import { DonationDistributionService } from "./donation-distribution.service.js";
+import mongoose from "mongoose";
 
 export class DonationService extends BaseService<IDonation> {
+  private categoryService: DonationCategoryService;
+  private distributionService: DonationDistributionService;
+
   constructor() {
     super(DonationModel);
+    this.categoryService = new DonationCategoryService();
+    this.distributionService = new DonationDistributionService();
   }
 
   // Validar se a categoria existe e está ativa
   async validateCategory(categoryId: string): Promise<void> {
-    const category = await DonationCategoryService.findOne({
+    const category = await this.categoryService.findOne({
       filters: { _id: categoryId, isActive: true }
     });
 
@@ -47,7 +54,66 @@ export class DonationService extends BaseService<IDonation> {
     return updated;
   }
 
-  // Buscar doações com populate da categoria
+  // Buscar doações com populate da categoria e estatísticas de distribuição
+  async findWithCategoryAndStats(filters: any = {}) {
+    const donations = await DonationModel
+      .find({ deleted: false, ...filters })
+      .populate('categoryId', 'name defaultUnit icon color')
+      .sort({ receivedDate: -1 })
+      .lean()
+      .exec();
+
+    // Adicionar estatísticas de distribuição para cada doação
+    for (const donation of donations) {
+      try {
+        const distributionService = new DonationDistributionService();
+        const stats = await distributionService.getDonationStats(donation._id.toString());
+        (donation as any).quantityDistributed = stats.quantityDistributed;
+        (donation as any).quantityRemaining = stats.quantityRemaining;
+        (donation as any).familiesCount = stats.familiesCount;
+      } catch (error) {
+        // Se houver erro ao buscar stats, usar valores padrão
+        (donation as any).quantityDistributed = 0;
+        (donation as any).quantityRemaining = donation.quantity;
+        (donation as any).familiesCount = 0;
+      }
+    }
+
+    return donations;
+  }
+
+  // Buscar doação por ID com categoria e estatísticas
+  async findByIdWithCategoryAndStats(id: string) {
+    const donation = await DonationModel
+      .findById(id)
+      .populate('categoryId', 'name defaultUnit icon color description')
+      .lean()
+      .exec();
+
+    if (!donation) {
+      throw new NotFoundError("donation_not_found", "Doação não encontrada");
+    }
+
+    // Adicionar estatísticas de distribuição
+    try {
+      const distributionService = new DonationDistributionService();
+      const stats = await distributionService.getDonationStats(id);
+      (donation as any).quantityDistributed = stats.quantityDistributed;
+      (donation as any).quantityRemaining = stats.quantityRemaining;
+      (donation as any).familiesCount = stats.familiesCount;
+      (donation as any).distributionStats = stats.distributionStats;
+    } catch (error) {
+      // Se houver erro ao buscar stats, usar valores padrão
+      (donation as any).quantityDistributed = 0;
+      (donation as any).quantityRemaining = donation.quantity;
+      (donation as any).familiesCount = 0;
+      (donation as any).distributionStats = [];
+    }
+
+    return donation;
+  }
+
+  // Buscar doações com populate da categoria (método simplificado)
   async findWithCategory(filters: any = {}) {
     return DonationModel
       .find({ deleted: false, ...filters })
@@ -56,7 +122,7 @@ export class DonationService extends BaseService<IDonation> {
       .exec();
   }
 
-  // Buscar doação por ID com categoria
+  // Buscar doação por ID com categoria (método simplificado)
   async findByIdWithCategory(id: string) {
     const donation = await DonationModel
       .findById(id)
@@ -86,7 +152,7 @@ export class DonationService extends BaseService<IDonation> {
     return this.findWithCategory({ status });
   }
 
-  // Estatísticas de doações
+  // Estatísticas gerais de doações
   async getDonationStats() {
     const pipeline = [
       { $match: { deleted: false } },
@@ -129,6 +195,80 @@ export class DonationService extends BaseService<IDonation> {
     ];
 
     return this.aggregate(pipeline);
+  }
+
+  // Distribuir doação para famílias
+  async distributeToFamilies(donationId: string, distributions: Array<{familyId: string, quantity: number, notes?: string}>) {
+    const donation = await this.findById(donationId);
+    if (!donation) {
+      throw new NotFoundError("donation_not_found", "Doação não encontrada");
+    }
+
+    // Validar quantidade total
+    const totalRequested = distributions.reduce((sum, dist) => sum + dist.quantity, 0);
+    const distributionService = new DonationDistributionService();
+    const stats = await distributionService.getDonationStats(donationId);
+    
+    if (totalRequested > stats.quantityRemaining) {
+      throw new BadRequestError(
+        "insufficient_quantity",
+        `Quantidade total solicitada (${totalRequested}) excede a disponível (${stats.quantityRemaining})`
+      );
+    }
+
+    // Criar distribuições
+    const results = [];
+    for (const dist of distributions) {
+      const distribution = await distributionService.insert({
+        donationId: new mongoose.Types.ObjectId(donationId),
+        familyId: new mongoose.Types.ObjectId(dist.familyId),
+        quantity: dist.quantity,
+        notes: dist.notes,
+        distributionDate: new Date(),
+        status: 'pending'
+      });
+      results.push(distribution);
+    }
+
+    return results;
+  }
+
+  // Listar doações com paginação e filtros
+  async listWithPagination(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    status?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }) {
+    const { page = 1, limit = 10, search, categoryId, status, dateFrom, dateTo } = options;
+    
+    const filters: any = { deleted: false };
+    
+    if (search) {
+      filters.$or = [
+        { donorName: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (categoryId) {
+      filters.categoryId = categoryId;
+    }
+    
+    if (status) {
+      filters.status = status;
+    }
+    
+    if (dateFrom || dateTo) {
+      filters.receivedDate = {};
+      if (dateFrom) filters.receivedDate.$gte = dateFrom;
+      if (dateTo) filters.receivedDate.$lte = dateTo;
+    }
+
+    return this.paginate({ filters, page, limit });
   }
 }
 

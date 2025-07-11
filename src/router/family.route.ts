@@ -7,6 +7,7 @@ import {
   deleteFamily,
   getBeneficiariesByFamilyId,
   updateFamily,
+  getFamilyDonationHistory,
 } from "../controllers/family.controller.js";
 
 export default (router: express.Router) => {
@@ -18,4 +19,5 @@ export default (router: express.Router) => {
 
   router.get("/families/:id/beneficiaries", getBeneficiariesByFamilyId);
   router.post("/families/:id/beneficiaries", createBeneficiaryByFamilyId);
+  router.get("/families/:id/donation-history", getFamilyDonationHistory);
 };

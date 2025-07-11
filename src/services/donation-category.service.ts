@@ -88,4 +88,5 @@ export class DonationCategoryService extends BaseService<IDonationCategory> {
   }
 }
 
-export default new DonationCategoryService();
+export const donationCategoryService = new DonationCategoryService();
+export default donationCategoryService;
