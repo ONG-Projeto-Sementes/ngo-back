@@ -17,6 +17,16 @@ const router = express.Router();
 export default (): express.Router => {
   // Public routes (no authentication required)
   authentication(router);
+  
+  // Public events route for homepage
+  router.get("/events/last", async (req, res) => {
+    try {
+      const { getLastEvents } = await import("../controllers/event.controller.js");
+      await getLastEvents[0](req, res, () => {});
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Apply authentication middleware to all subsequent routes
   router.use(isAuthenticated);

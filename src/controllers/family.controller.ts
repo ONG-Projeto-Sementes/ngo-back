@@ -5,7 +5,7 @@ import familyService from "../services/family.service.js";
 import { AsyncHandler } from "../middlewares/AsyncHandler.js";
 import { BodyHandler } from "../middlewares/BodyHandler.js";
 import { BeneficiaryService } from "../services/beneficiary.service.js";
-import { NotFoundError } from "errors/not-found.error.js";
+import { NotFoundError } from "../errors/not-found.error.js";
 
 const beneficiaryService = new BeneficiaryService();
 

@@ -8,9 +8,10 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "outDir": "dist",
-    "baseUrl": "src",
+    "rootDir": "src",
     "isolatedModules": true,
     "types": ["jest", "node"]
   },
-  "include": ["src", "tests"]
+  "include": ["src/**/*"],
+  "exclude": ["tests", "dist", "node_modules"]
 }
