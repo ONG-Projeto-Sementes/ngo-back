@@ -124,3 +124,7 @@
 2025-06-28 06:58:46 error: An error occurred: Sessão não encontrada
 2025-06-28 06:58:50 error: An error occurred: Sessão não encontrada
 2025-06-28 07:58:49 error: An error occurred: "genre" must be one of [M, F, O]
+2025-07-11 01:41:10 error: An error occurred: Usuário não encontrado
+2025-07-11 01:41:22 error: An error occurred: Usuário já existe
+2025-07-11 01:44:33 error: An error occurred: CPF já cadastrado
+2025-07-11 03:39:16 error: An error occurred: Sessão não encontrada
