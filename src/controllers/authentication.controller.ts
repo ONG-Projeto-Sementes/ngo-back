@@ -30,12 +30,18 @@ export const login = [
       );
     }
 
-    res.cookie("sessionToken", authenticatedUser.authentication.sessionToken, {
+    const cookieConfig = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: (process.env.NODE_ENV === "production" ? "none" : "none") as "none" | "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
+      path: "/",
+    };
+
+    console.log("🍪 Setting cookie with config:", cookieConfig);
+    console.log("🔑 Session token:", authenticatedUser.authentication.sessionToken);
+
+    res.cookie("sessionToken", authenticatedUser.authentication.sessionToken, cookieConfig);
 
     res.status(200).json(authenticatedUser);
   }),
@@ -86,7 +92,8 @@ export const logout = (req: express.Request, res: express.Response) => {
   res.clearCookie("sessionToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: (process.env.NODE_ENV === "production" ? "none" : "none") as "none" | "lax",
+    path: "/",
   });
   res.sendStatus(200);
 };

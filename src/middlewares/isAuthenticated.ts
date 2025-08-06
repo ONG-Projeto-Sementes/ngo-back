@@ -8,24 +8,35 @@ export const isAuthenticated = async (
   res: express.Response,
   next: express.NextFunction,
 ) => {
-  const sessionToken = req.cookies["sessionToken"];
+  try {
+    const sessionToken = req.cookies["sessionToken"];
+    
+    console.log("🍪 Cookies received:", req.cookies);
+    console.log("🔑 Session token:", sessionToken);
 
-  if (!sessionToken) {
-    throw new UnauthorizedError("unauthenticated", "Sem sessão ativa");
+    if (!sessionToken) {
+      console.log("❌ No session token found in cookies");
+      throw new UnauthorizedError("unauthenticated", "Sem sessão ativa");
+    }
+
+    const existingUser = await UserService.findOne({
+      select: "+authentication.sessionToken",
+      filters: {
+        "authentication.sessionToken": sessionToken,
+      },
+    });
+
+    if (!existingUser) {
+      console.log("❌ User not found for session token");
+      throw new UnauthorizedError("unauthenticated", "Sessão não encontrada");
+    }
+
+    console.log("✅ User authenticated:", existingUser.username);
+    merge(req, { identity: existingUser });
+
+    next();
+  } catch (error) {
+    console.log("🚨 Authentication error:", error);
+    next(error);
   }
-
-  const existingUser = await UserService.findOne({
-    select: "+authentication.sessionToken",
-    filters: {
-      "authentication.sessionToken": sessionToken,
-    },
-  });
-
-  if (!existingUser) {
-    throw new UnauthorizedError("unauthenticated", "Sessão não encontrada");
-  }
-
-  merge(req, { identity: existingUser });
-
-  next();
 };
