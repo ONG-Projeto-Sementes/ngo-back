@@ -14,9 +14,9 @@ COPY --from=build /usr/src/app/dist ./dist
 # 1) Cria a pasta de logs ANTES de virar usuário node
 RUN mkdir ./logs && chown node:node ./logs
 
-USER node
+# 2) Expose the port that the app will run on
+EXPOSE 8080
 
-# 2) Você pode remover o EXPOSE ou alinhar com o PORT default da sua app
-# EXPOSE 8000
+USER node
 
 CMD ["node", "dist/index.js"]
